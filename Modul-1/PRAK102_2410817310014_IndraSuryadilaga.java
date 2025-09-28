@@ -1,13 +1,13 @@
 package modulSatu;
 import java.util.Scanner;
 
-public class Prak102_2410817310014_IndraSuryadilaga {
+public class PRAK102_2410817310014_IndraSuryadilaga {
 
 	public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        Scanner input = new Scanner(System.in);
 
         System.out.println("Input");
-        int angkaAwal = scanner.nextInt();
+        int angkaAwal = input.nextInt();
         
         System.out.println("Output");
         int i = 0;
@@ -30,8 +30,7 @@ public class Prak102_2410817310014_IndraSuryadilaga {
         }
         
         System.out.println();
-        scanner.close();
-
+        input.close();
 	}
 
 }

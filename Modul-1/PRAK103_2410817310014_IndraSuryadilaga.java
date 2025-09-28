@@ -4,11 +4,11 @@ import java.util.Scanner;
 public class PRAK103_2410817310014_IndraSuryadilaga {
 
 	public static void main(String[] args) {
-		Scanner scanner = new Scanner(System.in);
+		Scanner input = new Scanner(System.in);
 		
         System.out.println("Input");
-        int jumlahAngka = scanner.nextInt();
-        int angkaAwal = scanner.nextInt();
+        int jumlahAngka = input.nextInt();
+        int angkaAwal = input.nextInt();
         
         System.out.println("Output");
         int i = 0;
@@ -28,8 +28,6 @@ public class PRAK103_2410817310014_IndraSuryadilaga {
         } while (i < jumlahAngka);
         
         System.out.println();
-        
-        scanner.close();
+        input.close();
 	}
-
 }

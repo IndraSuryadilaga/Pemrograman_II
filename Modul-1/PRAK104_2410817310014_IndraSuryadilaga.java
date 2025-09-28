@@ -4,13 +4,13 @@ import java.util.Scanner;
 public class PRAK104_2410817310014_IndraSuryadilaga {
 
 	public static void main(String[] args) {
-		Scanner scanner = new Scanner(System.in);
+		Scanner input = new Scanner(System.in);
 
 		System.out.print("Tangan Abu: ");
-		String[] tanganAbu = scanner.nextLine().split(" ");
+		String[] tanganAbu = input.nextLine().split(" ");
 		
 		System.out.print("Tangan Bagas: ");
-		String[] tanganBagas = scanner.nextLine().split(" ");
+		String[] tanganBagas = input.nextLine().split(" ");
 		
 		int poinAbu = 0;
 		int poinBagas = 0;
@@ -40,7 +40,7 @@ public class PRAK104_2410817310014_IndraSuryadilaga {
             System.out.println("Seri");
         }
 
-        scanner.close();
+        System.out.println();
+        input.close();
 	}
-
 }
