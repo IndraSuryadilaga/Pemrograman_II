@@ -1,15 +1,48 @@
 package PRAK201_2410817310014_IndraSuryadilaga;
 
-public class Buah{
+//Class Buah
+class Buah {
+    // Atribut
+	private String nama;
+	private double beratPerUnit;
+	private double hargaPerUnit;
+	private double jumlahBeli; 
 
-	public static void main(String[] args) {
-		Main apel = new Main("Apel", 0.4, 7000.0, 40.0);
-		Main mangga = new Main("mangga", 0.2, 3500.0, 15.0);
-		Main alpukat = new Main("alpukat", 0.25, 10000.0, 12.0);
-		
-		apel.tampilkanInfo();
-		mangga.tampilkanInfo();
-		alpukat.tampilkanInfo();
-	}
+ // Constructor
+ public Buah(String nama, double beratPerUnit, double hargaPerUnit, double jumlahBeli) {
+     this.nama = nama;
+     this.beratPerUnit = beratPerUnit;
+     this.hargaPerUnit = hargaPerUnit;
+     this.jumlahBeli = jumlahBeli;
+ }
 
+ // Method untuk menghitung harga sebelum diskon
+ public double hitungHargaSebelumDiskon() {
+     double jumlahUnit = jumlahBeli / beratPerUnit;
+     return jumlahUnit * hargaPerUnit;
+ }
+
+ // Method untuk menghitung total diskon
+ public double hitungDiskon() {
+     // Diskon 2% setiap 4kg, Artinya (jumlahBeli / 4) * 2%
+     double diskonPersen = (int)(jumlahBeli / 4) * (hargaPerUnit / beratPerUnit * 4) * 0.2;
+     return hitungHargaSebelumDiskon() * diskonPersen;
+ }
+
+ // Method untuk menghitung harga setelah diskon
+ public double hitungHargaSetelahDiskon() {
+     return hitungHargaSebelumDiskon() - hitungDiskon();
+ }
+
+ // Method untuk menampilkan semua informasi
+ public void tampilkanInfo() {
+     System.out.println("Nama Buah: " + nama);
+     System.out.println("Berat: " + beratPerUnit);
+     System.out.println("Harga: " + hargaPerUnit);
+     System.out.println("Jumlah Beli: " + jumlahBeli + "kg");
+     System.out.printf("Harga Sebelum Diskon: Rp%.2f%n", hitungHargaSebelumDiskon());
+     System.out.printf("Total Diskon: Rp%.2f%n", hitungDiskon());
+     System.out.printf("Harga Setelah Diskon: Rp%.2f%n", hitungHargaSetelahDiskon());
+     System.out.println();
+ }
 }
