@@ -9,22 +9,24 @@
             fx:controller="controller.MainController"
             minWidth="1200" minHeight="800">
 
-    <left>
-        <VBox spacing="10" styleClass="sidebar" minWidth="220">
-            <Label text="SPORTA" textFill="WHITE" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 0 0 10 0;"/>
-            <Separator style="-fx-opacity: 0.3;"/>
-            
-            <Button text="🏠  Dashboard" maxWidth="Infinity" onAction="#showDashboard" 
-                    styleClass="nav-button"/>
-            
-            <Button text="🏆  Turnamen Baru" maxWidth="Infinity" onAction="#showNewTournament"
-                    styleClass="nav-button, nav-button-active"/> <Button text="👥  Data Tim &amp; Pemain" maxWidth="Infinity" onAction="#showTeamData"
-                    styleClass="nav-button"/>
-            
-            <Button text="📜  Riwayat (History)" maxWidth="Infinity" onAction="#showHistory"
-                    styleClass="nav-button"/>
-        </VBox>
-    </left>
+<left>
+    <VBox spacing="10" styleClass="sidebar" minWidth="220">
+        <Label text="SPORTA" textFill="WHITE" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 0 0 10 0;"/>
+        <Separator style="-fx-opacity: 0.3;"/>
+        
+        <Button fx:id="btnDashboard" text="🏠  Dashboard" maxWidth="Infinity" 
+                onAction="#showDashboard" styleClass="nav-button"/>
+        
+        <Button fx:id="btnNewTournament" text="🏆  Turnamen Baru" maxWidth="Infinity" 
+                onAction="#showNewTournament" styleClass="nav-button"/>
+        
+        <Button fx:id="btnTeam" text="👥  Data Tim &amp; Pemain" maxWidth="Infinity" 
+                onAction="#showTeamData" styleClass="nav-button"/>
+        
+        <Button fx:id="btnHistory" text="📜  Riwayat (History)" maxWidth="Infinity" 
+                onAction="#showHistory" styleClass="nav-button"/>
+    </VBox>
+</left>
 
     <center>
         <StackPane fx:id="contentArea">

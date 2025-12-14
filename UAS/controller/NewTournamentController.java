@@ -64,11 +64,9 @@ public class NewTournamentController {
             return;
         }
         
-        // Syarat Bracket Ideal: Jumlah tim sebaiknya genap (4, 8, 16)
-        // Untuk UAS, kita beri warning saja atau paksa genap, tapi biarkan jalan dulu.
         if (selectedTeams.size() % 2 != 0) {
-            showAlert("Warning", "Jumlah tim ganjil (" + selectedTeams.size() + "). Bracket mungkin tidak sempurna (ada Bye). Disarankan 4 atau 8 tim.");
-            // Lanjut saja tidak apa-apa untuk demo
+        	showAlert("Warning", "Jumlah tim ganjil...");
+        	return;
         }
 
         // B. PROSES DATABASE TRANSAKSI

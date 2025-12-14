@@ -60,14 +60,14 @@ public class MatchDao {
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            // Menentukan Jumlah Ronde (4 Tim = Semifinal/Round 2, 8 Tim = Quarter/Round 3)
-            // Logika sederhana Jika 4 tim, 2 match. Jika 8 tim, 4 match.
-            int round = (teamIds.size() == 4) ? 2 : 4; 
+            // Logika sederhana misal: 8 tim = Quarter/Round 4, 4 tim = Semi/Round 2
+            int round = teamIds.size() / 2;
             
             int bracketIndex = 1;
+            int limit = (teamIds.size() % 2 == 0) ? teamIds.size() : teamIds.size() - 1;
             
             // Pairing/Menjodohkan Setiap 2 Tim
-            for (int i = 0; i < teamIds.size(); i += 2) {
+            for (int i = 0; i < limit; i += 2) {
                 int homeId = teamIds.get(i);
                 int awayId = teamIds.get(i + 1);
 
