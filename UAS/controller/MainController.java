@@ -38,10 +38,9 @@ public class MainController {
         updateActiveButton(btnTeam); // Update warna tombol
     }
 
-    @FXML private void showHistory() {
-        System.out.println("Buka Menu History");
-        // loadView("/view/HistoryView.fxml"); // Jika sudah ada
-        updateActiveButton(btnHistory); // Update warna tombol
+    @FXML
+    private void showHistory() {
+        loadView("/view/HistoryView.fxml");
     }
 
     // 2. Method Helper untuk Mengatur Style Tombol

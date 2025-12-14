@@ -10,11 +10,14 @@ import java.util.List;
 public class MatchDao {
     
     // Mengambil Data Match beserta Nama Timnya
+    // Mengambil Data Match beserta Nama Timnya (DAN NAMA TURNAMEN)
     public List<Match> getMatchesByTournament(int tournamentId) {
         List<Match> list = new ArrayList<>();
-        // Alias th = Team Home, ta = Team Away
-        String sql = "SELECT m.*, th.name as home_name, ta.name as away_name " +
+        
+        // REVISI SQL: Tambahkan JOIN ke tournaments untuk mengambil tour_name
+        String sql = "SELECT m.*, t.name as tour_name, th.name as home_name, ta.name as away_name " +
                      "FROM matches m " +
+                     "JOIN tournaments t ON m.tournament_id = t.id " + // <-- JOIN BARU
                      "LEFT JOIN teams th ON m.home_team_id = th.id " +
                      "LEFT JOIN teams ta ON m.away_team_id = ta.id " +
                      "WHERE m.tournament_id = ? " +
@@ -27,9 +30,11 @@ public class MatchDao {
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
+                // Gunakan Constructor Match TERBARU (yang ada tournamentName & matchDate)
                 Match m = new Match(
                     rs.getInt("id"),
                     rs.getInt("tournament_id"),
+                    rs.getString("tour_name"), // <-- Kolom ini sekarang ada
                     rs.getInt("home_team_id"),
                     rs.getString("home_name"),
                     rs.getInt("away_team_id"),
@@ -38,7 +43,8 @@ public class MatchDao {
                     rs.getInt("bracket_index"),
                     rs.getBoolean("is_finished"),
                     rs.getInt("home_score"),
-                    rs.getInt("away_score")
+                    rs.getInt("away_score"),
+                    rs.getString("match_date") // <-- Kolom waktu
                 );
                 list.add(m);
             }
@@ -247,6 +253,87 @@ public class MatchDao {
             e.printStackTrace();
         }
         System.out.println("----------------------------");
+    }
+    
+    // === FITUR HISTORY ===
+    public List<Match> getAllFinishedMatches() {
+        List<Match> list = new ArrayList<>();
+        // Join ke Tournaments untuk dapat nama, dan ambil match_date
+        String sql = "SELECT m.*, t.name as tour_name, th.name as home_name, ta.name as away_name " +
+                     "FROM matches m " +
+                     "JOIN tournaments t ON m.tournament_id = t.id " +
+                     "LEFT JOIN teams th ON m.home_team_id = th.id " +
+                     "LEFT JOIN teams ta ON m.away_team_id = ta.id " +
+                     "WHERE m.is_finished = 1 " +
+                     "ORDER BY m.id DESC";
+
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Match m = new Match(
+                    rs.getInt("id"),
+                    rs.getInt("tournament_id"),
+                    rs.getString("tour_name"),
+                    rs.getInt("home_team_id"),
+                    rs.getString("home_name"),
+                    rs.getInt("away_team_id"),
+                    rs.getString("away_name"),
+                    rs.getInt("round_number"),
+                    rs.getInt("bracket_index"),
+                    rs.getBoolean("is_finished"),
+                    rs.getInt("home_score"),
+                    rs.getInt("away_score"),
+                    rs.getString("match_date")
+                );
+                list.add(m);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // 2. BARU: Ambil Statistik Spesifik Pemain di Match tertentu
+    // Mengembalikan object Player yang sudah diisi poin & foul match tersebut
+    public List<model.Player> getPlayerStatsByMatch(int matchId, int teamId) {
+        List<model.Player> list = new ArrayList<>();
+        
+        // Query agak kompleks: Kita ambil pemain, lalu hitung sum event SCORE dan count event FOUL
+        String sql = "SELECT p.id, p.name, p.jersey_number, p.position, " +
+                     "COALESCE(SUM(CASE WHEN me.event_type = 'SCORE' THEN me.event_value ELSE 0 END), 0) as total_points, " +
+                     "COUNT(CASE WHEN me.event_type = 'FOUL' THEN 1 END) as total_fouls " +
+                     "FROM players p " +
+                     "LEFT JOIN match_events me ON p.id = me.player_id AND me.match_id = ? " +
+                     "WHERE p.team_id = ? " +
+                     "GROUP BY p.id";
+
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, matchId);
+            stmt.setInt(2, teamId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                model.Player p = new model.Player(
+                    rs.getInt("id"),
+                    teamId,
+                    rs.getString("name"),
+                    rs.getInt("jersey_number"),
+                    rs.getString("position")
+                );
+                // Isi statistik transien
+                p.setMatchPoints(rs.getInt("total_points"));
+                p.setMatchFouls(rs.getInt("total_fouls"));
+                
+                list.add(p);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
     
 }

@@ -43,18 +43,16 @@ public class MatchOperatorController {
     private void processCorrection(int pointsToDeduct) {
         if (selectedPlayer == null) return;
 
-        // Validasi: Skor tidak boleh minus
+        // Validasi agar tidak minus (Kode lama Anda...)
         int currentScore = isHomeTeamAction ? currentMatch.getHomeScore() : currentMatch.getAwayScore();
         if (currentScore + pointsToDeduct < 0) {
             showAlert("Gagal", "Skor tidak bisa negatif!");
             return;
         }
 
-        // 1. Bunyi (Nada rendah untuk undo/error)
         java.awt.Toolkit.getDefaultToolkit().beep(); 
 
-        // 2. Update Data
-        // Kita gunakan method updateScore yang sama, tapi poinnya dikurangi
+        // Update Skor Total (Kode lama Anda...)
         if (isHomeTeamAction) {
             int newScore = currentMatch.getHomeScore() + pointsToDeduct;
             matchDao.updateScore(currentMatch.getId(), newScore, currentMatch.getAwayScore());
@@ -67,11 +65,10 @@ public class MatchOperatorController {
             lblAwayScore.setText(String.valueOf(newScore));
         }
 
-        // 3. Catat Log Koreksi ke Database (PENTING untuk Audit)
-        // Kita catat sebagai event type 'CORRECTION'
-        matchDao.addMatchEvent(currentMatch.getId(), selectedPlayer.getId(), "CORRECTION", pointsToDeduct);
-
-        System.out.println("Koreksi Skor: " + pointsToDeduct + " oleh " + selectedPlayer.getName());
+        // --- UPDATE LOGGING ---
+        // Gunakan "SCORE" agar dijumlahkan oleh Query History, tapi nilainya negatif
+        matchDao.addMatchEvent(currentMatch.getId(), selectedPlayer.getId(), "SCORE", pointsToDeduct);
+        
         closeOverlay();
     }
 
@@ -170,15 +167,16 @@ public class MatchOperatorController {
 
         java.awt.Toolkit.getDefaultToolkit().beep(); 
 
-        // HITUNG SKOR PAKAI RULES (Bukan manual +)
-        // Badminton akan otomatis menganggap input apapun jadi +1
-        // Basket akan menerima input apa adanya
-        
+        int actualPointsAdded = 0; // Variabel untuk menampung poin bersih yang masuk
+
         if (isHomeTeamAction) {
             int current = currentMatch.getHomeScore();
             
-            // DELEGASI KE STRATEGY
+            // Hitung skor baru pakai Rules
             int newScore = gameRules.calculateNewScore(current, pointsInput); 
+            
+            // Hitung berapa poin yang sebenarnya bertambah (PENTING untuk History)
+            actualPointsAdded = newScore - current;
             
             matchDao.updateScore(currentMatch.getId(), newScore, currentMatch.getAwayScore());
             currentMatch.setHomeScore(newScore);
@@ -187,13 +185,24 @@ public class MatchOperatorController {
         } else {
             int current = currentMatch.getAwayScore();
             
-            // DELEGASI KE STRATEGY
+            // Hitung skor baru pakai Rules
             int newScore = gameRules.calculateNewScore(current, pointsInput);
+            
+            // Hitung berapa poin yang sebenarnya bertambah
+            actualPointsAdded = newScore - current;
             
             matchDao.updateScore(currentMatch.getId(), currentMatch.getHomeScore(), newScore);
             currentMatch.setAwayScore(newScore);
             lblAwayScore.setText(String.valueOf(newScore));
         }
+        
+        // --- BAGIAN YANG HILANG SEBELUMNYA ---
+        // Simpan log pencetak poin ke database match_events
+        if (actualPointsAdded != 0) {
+            matchDao.addMatchEvent(currentMatch.getId(), selectedPlayer.getId(), "SCORE", actualPointsAdded);
+            System.out.println("Mencatat Poin: " + actualPointsAdded + " oleh " + selectedPlayer.getName());
+        }
+        // --------------------------------------
         
         closeOverlay();
     }

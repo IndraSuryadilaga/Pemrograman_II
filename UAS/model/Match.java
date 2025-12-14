@@ -4,33 +4,36 @@ public class Match extends BaseModel {
     private int tournamentId;
     private int homeTeamId;
     private int awayTeamId;
-    private String homeTeamName;
-    private String awayTeamName;
-    
     private int roundNumber;
     private int bracketIndex;
     private boolean isFinished;
     private int homeScore;
     private int awayScore;
+    private String homeTeamName;
+    private String awayTeamName;
+    private String tournamentName;
+    private String matchDate;
 
     public Match() { super(0); }
 
-    public Match(int id, int tournamentId, int homeTeamId, String homeName, 
-                 int awayTeamId, String awayName, int round, int idx, 
-                 boolean finished, int hScore, int aScore) {
-        super(id);
-        this.tournamentId = tournamentId;
-        this.homeTeamId = homeTeamId;
-        this.homeTeamName = homeName;
-        this.awayTeamId = awayTeamId;
-        this.awayTeamName = awayName;
-        this.roundNumber = round;
-        this.bracketIndex = idx;
-        this.isFinished = finished;
-        this.homeScore = hScore;
-        this.awayScore = aScore;
-    }
-    
+    public Match(int id, int tournamentId, String tournamentName, int homeTeamId, String homeTeamName, 
+            int awayTeamId, String awayTeamName, int roundNumber, int bracketIndex, 
+            boolean isFinished, int homeScore, int awayScore, String matchDate) {
+	   super(id);
+	   this.tournamentId = tournamentId;
+	   this.tournamentName = tournamentName;
+	   this.homeTeamId = homeTeamId;
+	   this.homeTeamName = homeTeamName;
+	   this.awayTeamId = awayTeamId;
+	   this.awayTeamName = awayTeamName;
+	   this.roundNumber = roundNumber;
+	   this.bracketIndex = bracketIndex;
+	   this.isFinished = isFinished;
+	   this.homeScore = homeScore;
+	   this.awayScore = awayScore;
+	   this.matchDate = matchDate;
+	}
+	    
     public int getTournamentId() { return tournamentId; }
     public int getHomeTeamId() { return homeTeamId; }
     public int getAwayTeamId() { return awayTeamId; }
@@ -41,6 +44,11 @@ public class Match extends BaseModel {
     public boolean isFinished() { return isFinished; }
     public int getHomeScore() { return homeScore; }
     public int getAwayScore() { return awayScore; }
+    public String getTournamentName() { return tournamentName; }
+    public void setTournamentName(String tournamentName) { this.tournamentName = tournamentName; }
+    
+    public String getMatchDate() { return matchDate; }
+    public void setMatchDate(String matchDate) { this.matchDate = matchDate; }
     
     public void setHomeScore(int homeScore) { this.homeScore = homeScore; }
 

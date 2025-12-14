@@ -1,6 +1,8 @@
 package controller;
 
+import dao.PlayerDao;
 import dao.TeamDao;
+import model.Player;
 import model.Team;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,112 +12,195 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 public class TeamController {
 
-    // 1. Deklarasi Komponen FXML (Harus sama persis dengan fx:id di FXML)
+    // --- UI Components Team ---
     @FXML private TableView<Team> tableTeams;
-    @FXML private TableColumn<Team, Integer> colId;
-    @FXML private TableColumn<Team, String> colName;
-    @FXML private TableColumn<Team, String> colLogo;
-    
-    @FXML private TextField tfName;
-    @FXML private TextField tfLogo;
-    @FXML private Button btnSave;
-    @FXML private Button btnDelete;
+    @FXML private TableColumn<Team, String> colTeamName;
+    @FXML private TextField tfTeamName;
 
-    // 2. Variabel Pembantu
+    // --- UI Components Player ---
+    @FXML private Label lblSelectedTeam;
+    @FXML private TableView<Player> tablePlayers;
+    @FXML private TableColumn<Player, String> colPlayerName;
+    @FXML private TableColumn<Player, Integer> colPlayerNo;
+    @FXML private TableColumn<Player, String> colPlayerPos;
+    @FXML private TextField tfPlayerName, tfPlayerNo, tfPlayerPos;
+
+    // --- DAO & Data ---
     private TeamDao teamDao;
-    private ObservableList<Team> teamList; // List khusus JavaFX yang bisa auto-update UI
-    private Team selectedTeam; // Untuk menyimpan tim yang sedang diklik user
+    private PlayerDao playerDao;
+    private Team selectedTeam; // Tim yang sedang diklik di tabel kiri
+    private Player selectedPlayer; // Pemain yang sedang diklik di tabel kanan
 
-    // 3. Method initialize (Dipanggil otomatis saat layar dibuka)
     @FXML
     public void initialize() {
         teamDao = new TeamDao();
-        teamList = FXCollections.observableArrayList();
+        playerDao = new PlayerDao();
 
-        // Hubungkan Kolom Tabel dengan Atribut di Class Team
-        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
-        colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colLogo.setCellValueFactory(new PropertyValueFactory<>("logoPath"));
+        setupTables();
+        loadTeams();
+        
+        // Disable form pemain sampai tim dipilih
+        setPlayerFormState(false);
+    }
 
-        // Load data awal dari database
-        loadData();
+    private void setupTables() {
+        // Setup Kolom Tabel
+        colTeamName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        
+        colPlayerName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colPlayerNo.setCellValueFactory(new PropertyValueFactory<>("jerseyNumber"));
+        colPlayerPos.setCellValueFactory(new PropertyValueFactory<>("position"));
 
-        // Event Listener: Jika baris tabel diklik -> Isi form
-        tableTeams.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                selectedTeam = newSelection;
-                tfName.setText(selectedTeam.getName());
-                tfLogo.setText(selectedTeam.getLogoPath());
-                btnSave.setText("Update"); // Ubah tombol jadi Update
-            } else {
-                clearForm();
+        // Listener Seleksi Tabel Tim
+        tableTeams.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                selectedTeam = newVal;
+                tfTeamName.setText(newVal.getName());
+                
+                // Load Pemain dari Tim ini
+                loadPlayers(newVal.getId());
+                lblSelectedTeam.setText("Manage Pemain: " + newVal.getName());
+                setPlayerFormState(true); // Enable form pemain
+            }
+        });
+
+        // Listener Seleksi Tabel Pemain
+        tablePlayers.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                selectedPlayer = newVal;
+                tfPlayerName.setText(newVal.getName());
+                tfPlayerNo.setText(String.valueOf(newVal.getJerseyNumber()));
+                tfPlayerPos.setText(newVal.getPosition());
             }
         });
     }
 
-    private void loadData() {
-        teamList.clear();
-        teamList.addAll(teamDao.getAll()); // Ambil dari DAO
-        tableTeams.setItems(teamList);     // Pasang ke Tabel
+    private void loadTeams() {
+        tableTeams.setItems(FXCollections.observableArrayList(teamDao.getAll()));
     }
 
-    private void clearForm() {
-        tfName.clear();
-        tfLogo.clear();
+    private void loadPlayers(int teamId) {
+        tablePlayers.setItems(FXCollections.observableArrayList(playerDao.getPlayersByTeam(teamId)));
+    }
+
+    private void setPlayerFormState(boolean active) {
+        tablePlayers.setDisable(!active);
+        tfPlayerName.setDisable(!active);
+        tfPlayerNo.setDisable(!active);
+        tfPlayerPos.setDisable(!active);
+    }
+
+    // === CRUD TIM ===
+    
+    @FXML
+    private void addTeam() {
+        String name = tfTeamName.getText();
+        if (name.isEmpty()) return;
+
+        // PERBAIKAN: Tambahkan null atau "" sebagai parameter kedua (logoPath)
+        Team t = new Team(name, null); 
+        
+        if (teamDao.add(t)) { // Ubah addTeam jadi add sesuai nama method di DaoInterface
+            loadTeams();
+            clearTeamForm();
+            showAlert("Info", "Tim berhasil ditambahkan!");
+        }
+    }
+
+    @FXML
+    private void updateTeam() {
+        if (selectedTeam == null) return;
+        selectedTeam.setName(tfTeamName.getText());
+        
+        if (teamDao.update(selectedTeam)) {
+            loadTeams();
+            clearTeamForm();
+        }
+    }
+
+    @FXML
+    private void deleteTeam() {
+        if (selectedTeam == null) return;
+        
+        if (teamDao.delete(selectedTeam.getId())) {
+            loadTeams();
+            clearTeamForm();
+            // Reset tabel pemain karena timnya hilang
+            tablePlayers.getItems().clear();
+            setPlayerFormState(false);
+        }
+    }
+
+    @FXML
+    private void clearTeamForm() {
+        tfTeamName.clear();
         selectedTeam = null;
-        btnSave.setText("Simpan");
         tableTeams.getSelectionModel().clearSelection();
     }
 
-    // 4. Handle Button Actions
+    // === CRUD PEMAIN ===
+
     @FXML
-    private void handleSave() {
-        String name = tfName.getText();
-        String logo = tfLogo.getText();
+    private void addPlayer() {
+        if (selectedTeam == null) return;
+        
+        try {
+            String name = tfPlayerName.getText();
+            int number = Integer.parseInt(tfPlayerNo.getText());
+            String pos = tfPlayerPos.getText();
 
-        if (name.isEmpty()) {
-            showAlert("Error", "Nama tim tidak boleh kosong!");
-            return;
-        }
-
-        if (selectedTeam == null) {
-            // Mode INSERT (Data Baru)
-            Team newTeam = new Team(name, logo);
-            if (teamDao.add(newTeam)) {
-                showAlert("Sukses", "Data berhasil disimpan!");
-                loadData();
-                clearForm();
+            Player p = new Player(selectedTeam.getId(), name, number, pos);
+            if (playerDao.addPlayer(p)) {
+                loadPlayers(selectedTeam.getId());
+                clearPlayerForm();
             }
-        } else {
-            // Mode UPDATE (Edit Data Lama)
-            selectedTeam.setName(name);
-            selectedTeam.setLogoPath(logo);
-            if (teamDao.update(selectedTeam)) {
-                showAlert("Sukses", "Data berhasil diupdate!");
-                loadData();
-                clearForm();
-            }
+        } catch (NumberFormatException e) {
+            showAlert("Error", "Nomor Punggung harus angka!");
         }
     }
 
     @FXML
-    private void handleDelete() {
-        if (selectedTeam != null) {
-            if (teamDao.delete(selectedTeam.getId())) {
-                showAlert("Sukses", "Data berhasil dihapus!");
-                loadData();
-                clearForm();
+    private void updatePlayer() {
+        if (selectedPlayer == null) return;
+
+        try {
+            selectedPlayer.setName(tfPlayerName.getText());
+            selectedPlayer.setJerseyNumber(Integer.parseInt(tfPlayerNo.getText()));
+            selectedPlayer.setPosition(tfPlayerPos.getText());
+
+            if (playerDao.updatePlayer(selectedPlayer)) {
+                loadPlayers(selectedTeam.getId());
+                clearPlayerForm();
             }
-        } else {
-            showAlert("Warning", "Pilih data di tabel dulu untuk dihapus.");
+        } catch (NumberFormatException e) {
+            showAlert("Error", "Nomor Punggung harus angka!");
         }
     }
 
-    private void showAlert(String title, String message) {
+    @FXML
+    private void deletePlayer() {
+        if (selectedPlayer == null) return;
+
+        if (playerDao.deletePlayer(selectedPlayer.getId())) {
+            loadPlayers(selectedTeam.getId());
+            clearPlayerForm();
+        }
+    }
+
+    @FXML
+    private void clearPlayerForm() {
+        tfPlayerName.clear();
+        tfPlayerNo.clear();
+        tfPlayerPos.clear();
+        selectedPlayer = null;
+        tablePlayers.getSelectionModel().clearSelection();
+    }
+
+    private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 }

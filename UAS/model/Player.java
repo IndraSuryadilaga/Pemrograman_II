@@ -2,8 +2,10 @@ package model; // Sesuaikan dengan package Anda (misal: com.sporta.model)
 
 public class Player extends BaseModel {
     private int teamId;
-    private String name;
     private int jerseyNumber;
+    private int matchPoints;
+    private int matchFouls;
+    private String name;
     private String position;
 
     public Player() {
@@ -38,6 +40,12 @@ public class Player extends BaseModel {
     public String getPosition() { return position; }
     public void setPosition(String position) { this.position = position; }
 
+    public int getMatchPoints() { return matchPoints; }
+    public void setMatchPoints(int matchPoints) { this.matchPoints = matchPoints; }
+
+    public int getMatchFouls() { return matchFouls; }
+    public void setMatchFouls(int matchFouls) { this.matchFouls = matchFouls; }
+    
     @Override
     public String toString() {
         return name + " (#" + jerseyNumber + ")";

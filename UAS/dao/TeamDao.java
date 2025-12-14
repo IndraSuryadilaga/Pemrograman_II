@@ -58,16 +58,12 @@ public class TeamDao implements DaoInterface<Team> {
 
     @Override
     public boolean add(Team team) {
-        String sql = "INSERT INTO teams (name, logo_path) VALUES (?, ?)";
-        
+    	String sql = "INSERT INTO teams (name, logo_path) VALUES (?, ?)";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
             stmt.setString(1, team.getName());
-            stmt.setString(2, team.getLogoPath());
-            
-            int rowInserted = stmt.executeUpdate();
-            return rowInserted > 0;
+            stmt.setString(2, team.getLogoPath()); // Boleh null/kosong dulu
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -76,17 +72,12 @@ public class TeamDao implements DaoInterface<Team> {
 
     @Override
     public boolean update(Team team) {
-        String sql = "UPDATE teams SET name = ?, logo_path = ? WHERE id = ?";
-        
+    	String sql = "UPDATE teams SET name = ? WHERE id = ?";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
             stmt.setString(1, team.getName());
-            stmt.setString(2, team.getLogoPath());
-            stmt.setInt(3, team.getId()); // Ambil ID dari parent class (BaseModel)
-            
-            int rowUpdated = stmt.executeUpdate();
-            return rowUpdated > 0;
+            stmt.setInt(2, team.getId());
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -95,14 +86,11 @@ public class TeamDao implements DaoInterface<Team> {
 
     @Override
     public boolean delete(int id) {
-        String sql = "DELETE FROM teams WHERE id = ?";
-        
+    	String sql = "DELETE FROM teams WHERE id = ?";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
             stmt.setInt(1, id);
-            int rowDeleted = stmt.executeUpdate();
-            return rowDeleted > 0;
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;

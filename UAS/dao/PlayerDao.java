@@ -36,4 +36,37 @@ public class PlayerDao {
         }
         return list;
     }
+	
+	public boolean addPlayer(Player player) {
+        String sql = "INSERT INTO players (team_id, name, jersey_number, position) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, player.getTeamId());
+            stmt.setString(2, player.getName());
+            stmt.setInt(3, player.getJerseyNumber());
+            stmt.setString(4, player.getPosition());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); return false; }
+    }
+
+    public boolean updatePlayer(Player player) {
+        String sql = "UPDATE players SET name = ?, jersey_number = ?, position = ? WHERE id = ?";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, player.getName());
+            stmt.setInt(2, player.getJerseyNumber());
+            stmt.setString(3, player.getPosition());
+            stmt.setInt(4, player.getId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); return false; }
+    }
+
+    public boolean deletePlayer(int id) {
+        String sql = "DELETE FROM players WHERE id = ?";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); return false; }
+    }
 }
