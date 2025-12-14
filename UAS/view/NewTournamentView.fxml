@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="controller.NewTournamentController" 
+      stylesheets="@application.css"
+      spacing="20" 
+      style="-fx-padding: 40;">
+
+    <Label text="Buat Turnamen Baru" styleClass="text-big"/>
+    <Separator/>
+
+    <VBox spacing="10" styleClass="card">
+        <Label text="1. Informasi Turnamen" styleClass="label-header"/>
+        
+        <VBox spacing="5">
+            <Label text="Nama Turnamen" styleClass="field-label"/>
+            <TextField fx:id="tfTournamentName" promptText="Contoh: UAS Cup 2025" maxWidth="400"/>
+        </VBox>
+
+        <VBox spacing="5">
+            <Label text="Cabang Olahraga" styleClass="field-label"/>
+            <ComboBox fx:id="cbSport" promptText="-- Pilih Sport --" prefWidth="250"/>
+        </VBox>
+    </VBox>
+
+    <VBox spacing="10" VBox.vgrow="ALWAYS" styleClass="card">
+        <Label text="2. Pilih Tim Peserta (Minimal 4 Tim)" styleClass="label-header"/>
+        <Label text="Tahan tombol CTRL untuk memilih banyak tim sekaligus" styleClass="text-muted"/>
+        
+        <ListView fx:id="listTeams" VBox.vgrow="ALWAYS"/>
+        
+        <Label fx:id="lblSelectionCount" text="0 Tim dipilih" style="-fx-text-fill: #2980b9; -fx-font-weight: bold;"/>
+    </VBox>
+
+    <HBox spacing="20" alignment="CENTER_RIGHT">
+        <Button text="Batal" style="-fx-background-color: #95a5a6; -fx-text-fill: white;"/>
+        <Button text="GENERATE BRACKET" fx:id="btnGenerate" onAction="#handleGenerate"
+                styleClass="btn-primary" style="-fx-font-size: 14px;"/>
+    </HBox>
+
+</VBox>

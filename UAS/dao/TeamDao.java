@@ -1,0 +1,111 @@
+package dao;
+
+import model.Team;
+import util.DatabaseHelper;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TeamDao implements DaoInterface<Team> {
+
+    @Override
+    public List<Team> getAll() {
+        List<Team> list = new ArrayList<>();
+        String sql = "SELECT * FROM teams";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                // Mapping dari Row Database ke Object Java
+                Team t = new Team(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("logo_path")
+                );
+                list.add(t);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Team get(int id) {
+        Team t = null;
+        String sql = "SELECT * FROM teams WHERE id = ?";
+
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, id); // Set parameter ? pertama dengan ID
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                t = new Team(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("logo_path")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return t;
+    }
+
+    @Override
+    public boolean add(Team team) {
+        String sql = "INSERT INTO teams (name, logo_path) VALUES (?, ?)";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, team.getName());
+            stmt.setString(2, team.getLogoPath());
+            
+            int rowInserted = stmt.executeUpdate();
+            return rowInserted > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean update(Team team) {
+        String sql = "UPDATE teams SET name = ?, logo_path = ? WHERE id = ?";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, team.getName());
+            stmt.setString(2, team.getLogoPath());
+            stmt.setInt(3, team.getId()); // Ambil ID dari parent class (BaseModel)
+            
+            int rowUpdated = stmt.executeUpdate();
+            return rowUpdated > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean delete(int id) {
+        String sql = "DELETE FROM teams WHERE id = ?";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, id);
+            int rowDeleted = stmt.executeUpdate();
+            return rowDeleted > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}

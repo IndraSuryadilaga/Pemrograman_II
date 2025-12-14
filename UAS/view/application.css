@@ -1,0 +1,186 @@
+/* =============================================================================
+   ROOT & VARIABLES
+   ============================================================================= */
+.root {
+    -primary-color: #2c3e50;      /* Midnight Blue */
+    -secondary-color: #3498db;    /* Blue Accent */
+    -bg-color: #ecf0f1;           /* Light Grey Background */
+    -card-bg: #ffffff;            /* White Card */
+    -success-color: #27ae60;      /* Green */
+    -danger-color: #c0392b;       /* Red */
+    -text-main: #2d3436;          /* Dark Grey Text */
+    -text-light: #7f8c8d;         /* Light Grey Text */
+
+    -fx-font-family: "Segoe UI", "Roboto", sans-serif;
+    -fx-font-size: 14px;
+    -fx-background-color: -bg-color;
+}
+
+/* =============================================================================
+   LAYOUT CONTAINERS (Header, Sidebar, Forms)
+   ============================================================================= */
+.header-container {
+    -fx-background-color: -primary-color;
+    -fx-padding: 15px 25px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 8, 0, 0, 2);
+}
+
+.top-label {
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* Sidebar Navigation (Main View) */
+.sidebar {
+    -fx-background-color: -primary-color;
+    -fx-padding: 20px;
+}
+
+/* Container Putih (Form & Dashboard Cards) */
+.card, .form-container {
+    -fx-background-color: -card-bg;
+    -fx-padding: 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 5, 0, 2, 0);
+    
+    /* Rounded Corners */
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+.form-container {
+    -fx-border-color: transparent #bdc3c7 transparent transparent; /* Khusus Form */
+}
+
+/* =============================================================================
+   TYPOGRAPHY
+   ============================================================================= */
+.label-header {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -primary-color;
+    -fx-padding: 0 0 10 0;
+}
+
+.field-label {
+    -fx-text-fill: -text-light;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 5 0;
+}
+
+/* Dashboard & Scoreboard Typography */
+.text-huge { -fx-font-size: 60px; -fx-font-weight: bold; }
+.text-big { -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: -primary-color; }
+.text-muted { -fx-text-fill: -text-light; -fx-font-size: 12px; }
+
+/* =============================================================================
+   INPUTS (TextField, ComboBox)
+   ============================================================================= */
+.text-field, .combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1px;
+    -fx-padding: 8px 12px;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+.text-field:focused, .combo-box:focused {
+    -fx-border-color: -secondary-color;
+    -fx-effect: dropshadow(three-pass-box, rgba(52, 152, 219, 0.2), 5, 0, 0, 0);
+}
+
+/* =============================================================================
+   BUTTONS (General & Navigation)
+   ============================================================================= */
+.button {
+    -fx-padding: 10px 20px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Tombol Menu di Sidebar */
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-alignment: CENTER_LEFT;
+    -fx-font-size: 14px;
+    -fx-padding: 12px 15px;
+}
+.nav-button:hover {
+    -fx-background-color: rgba(255,255,255,0.1); /* Efek hover halus */
+}
+.nav-button-active {
+    -fx-background-color: -secondary-color; /* Tombol aktif berwarna biru */
+    -fx-text-fill: white;
+}
+
+/* Action Buttons */
+#btnSave, .btn-primary {
+    -fx-background-color: -success-color;
+    -fx-text-fill: white;
+}
+#btnSave:hover, .btn-primary:hover { -fx-background-color: derive(-success-color, -10%); }
+
+#btnDelete, .btn-danger {
+    -fx-background-color: white;
+    -fx-text-fill: -danger-color;
+    -fx-border-color: -danger-color;
+    -fx-border-width: 1.5px;
+}
+#btnDelete:hover, .btn-danger:hover {
+    -fx-background-color: -danger-color;
+    -fx-text-fill: white;
+}
+
+/* =============================================================================
+   TABLES & LISTS
+   ============================================================================= */
+.table-view, .list-view {
+    -fx-background-color: transparent;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1px;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 1px;
+}
+
+/* Header Table */
+.table-view .column-header-background {
+    -fx-background-color: -primary-color;
+    -fx-background-radius: 10 10 0 0;
+}
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER;
+}
+
+/* Cells */
+.table-cell, .list-cell {
+    -fx-padding: 0 15px;
+    -fx-text-fill: -text-main;
+    -fx-border-color: transparent #bdc3c7 #bdc3c7 transparent;
+}
+
+/* List View Specific */
+.list-cell {
+    -fx-background-color: white;
+    -fx-padding: 10px;
+}
+.list-cell:filled:selected, .list-cell:filled:selected:hover {
+    -fx-background-color: -secondary-color;
+    -fx-text-fill: white;
+}
+.list-cell:filled:hover {
+    -fx-background-color: #d6eaf8;
+}
+
+/* Rows */
+.table-row-cell { -fx-background-color: #f7f9fa; -fx-cell-size: 45px; }
+.table-row-cell:odd { -fx-background-color: #ebeff0; }
+.table-row-cell:selected { -fx-background-color: -secondary-color; }
+.table-row-cell:selected .text { -fx-fill: white; }
