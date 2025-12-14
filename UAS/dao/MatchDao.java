@@ -47,47 +47,6 @@ public class MatchDao {
         }
         return list;
     }
-
-    // Algoritma Generate Bracket
-    public boolean generateBracket(int tournamentId, List<Integer> teamIds) {
-        if (teamIds.size() < 2) return false;
-
-        Collections.shuffle(teamIds);
-
-        String sql = "INSERT INTO matches (tournament_id, home_team_id, away_team_id, round_number, bracket_index, match_date) " +
-                     "VALUES (?, ?, ?, ?, ?, NOW())";
-
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            // Logika sederhana misal: 8 tim = Quarter/Round 4, 4 tim = Semi/Round 2
-            int round = teamIds.size() / 2;
-            
-            int bracketIndex = 1;
-            int limit = (teamIds.size() % 2 == 0) ? teamIds.size() : teamIds.size() - 1;
-            
-            // Pairing/Menjodohkan Setiap 2 Tim
-            for (int i = 0; i < limit; i += 2) {
-                int homeId = teamIds.get(i);
-                int awayId = teamIds.get(i + 1);
-
-                stmt.setInt(1, tournamentId);
-                stmt.setInt(2, homeId);
-                stmt.setInt(3, awayId);
-                stmt.setInt(4, round);
-                stmt.setInt(5, bracketIndex++);
-                
-                stmt.addBatch();
-            }
-            
-            stmt.executeBatch();
-            return true;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
     
     // Update skor akhir pertandingan
     public boolean updateScore(int matchId, int homeScore, int awayScore) {
@@ -105,4 +64,189 @@ public class MatchDao {
             return false;
         }
     }
+    
+    // === FITUR TRANSACTION LOG (MATCH EVENTS) ===
+
+    // 1. Mencatat Event (Foul, Score, dll)
+    public boolean addMatchEvent(int matchId, int playerId, String eventType, int value) {
+        String sql = "INSERT INTO match_events (match_id, player_id, event_type, event_value, game_time) VALUES (?, ?, ?, ?, ?)";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, matchId);
+            stmt.setInt(2, playerId);
+            stmt.setString(3, eventType); // 'FOUL' atau 'SCORE'
+            stmt.setInt(4, value);        // 1 jika Foul, atau poin jika Score
+            
+            // Simulasi Game Time (Ambil jam sistem saat ini)
+            String timeNow = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+            stmt.setString(5, timeNow);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // 2. Menghitung Jumlah Foul Pemain Tertentu (Aggregation Query)
+    public int getPlayerFoulCount(int matchId, int playerId) {
+        String sql = "SELECT COUNT(*) FROM match_events WHERE match_id = ? AND player_id = ? AND event_type = 'FOUL'";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, matchId);
+            stmt.setInt(2, playerId);
+            
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    // === ALGORITMA GENERATE BRACKET (FIXED LOGIC) ===
+    public boolean generateBracket(int tournamentId, List<Integer> teamIds) {
+        int teamCount = teamIds.size();
+        if (teamCount < 2) return false;
+
+        // Hitung Ukuran Bracket (4, 8, 16...)
+        int bracketSize = 1;
+        while (bracketSize < teamCount) {
+            bracketSize *= 2;
+        }
+
+        String sql = "INSERT INTO matches (tournament_id, round_number, bracket_index, home_team_id, away_team_id, match_date) VALUES (?, ?, ?, ?, ?, NOW())";
+
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            conn.setAutoCommit(false);
+
+            // 3. GENERATE STRUKTUR BRACKET KOSONG
+            // i = jumlah match di ronde tersebut.
+            // i=1 (Final), i=2 (Semi), i=4 (Quarter)
+            for (int i = 1; i <= bracketSize / 2; i *= 2) {
+                
+                // --- PERBAIKAN DISINI ---
+                // Logika lama: int roundNumber = bracketSize / i / 2; (TERBALIK)
+                // Logika baru: Round 1=Final(1 match), Round 2=Semi(2 match). 
+                // Jadi roundNumber SAMA DENGAN i.
+                int roundNumber = i; 
+                // ------------------------
+
+                for (int matchIdx = 1; matchIdx <= i; matchIdx++) {
+                    stmt.setInt(1, tournamentId);
+                    stmt.setInt(2, roundNumber);
+                    stmt.setInt(3, matchIdx);
+                    
+                    stmt.setNull(4, java.sql.Types.INTEGER);
+                    stmt.setNull(5, java.sql.Types.INTEGER);
+                    
+                    stmt.addBatch();
+                }
+            }
+            stmt.executeBatch();
+
+            // 4. ISI BABAK PERTAMA DENGAN TIM
+            // Round pertama adalah angka terbesar (misal 2 untuk Semi, 4 untuk Quarter)
+            int firstRound = bracketSize / 2; 
+            
+            String updateSql = "UPDATE matches SET home_team_id = ?, away_team_id = ? " +
+                               "WHERE tournament_id = ? AND round_number = ? AND bracket_index = ?";
+            
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                for (int i = 0; i < bracketSize / 2; i++) {
+                    int homeIndex = i * 2;
+                    int awayIndex = i * 2 + 1;
+
+                    Integer homeId = (homeIndex < teamCount) ? teamIds.get(homeIndex) : null;
+                    Integer awayId = (awayIndex < teamCount) ? teamIds.get(awayIndex) : null;
+
+                    if (homeId != null) updateStmt.setInt(1, homeId); 
+                    else updateStmt.setNull(1, java.sql.Types.INTEGER);
+
+                    if (awayId != null) updateStmt.setInt(2, awayId);
+                    else updateStmt.setNull(2, java.sql.Types.INTEGER);
+
+                    updateStmt.setInt(3, tournamentId);
+                    updateStmt.setInt(4, firstRound); 
+                    updateStmt.setInt(5, i + 1);
+                    
+                    updateStmt.addBatch();
+                }
+                updateStmt.executeBatch();
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // === ALGORITMA BRACKET ADVANCEMENT (LOGIKA PROMOSI PEMENANG) ===
+    public void advanceWinnerToNextRound(Match currentMatch) {
+        // 1. Tentukan Siapa Pemenangnya
+        int winnerTeamId = (currentMatch.getHomeScore() > currentMatch.getAwayScore()) 
+                           ? currentMatch.getHomeTeamId() 
+                           : currentMatch.getAwayTeamId();
+
+        System.out.println("--- DEBUG ADVANCE WINNER ---");
+        System.out.println("Match Selesai: Round " + currentMatch.getRoundNumber() + ", Index " + currentMatch.getBracketIndex());
+        System.out.println("Pemenang ID: " + winnerTeamId);
+
+        // 2. Tentukan Tujuan (Next Match)
+        // Logika DB: Round 4 -> 2 -> 1
+        int currentRound = currentMatch.getRoundNumber();
+        int nextRound = currentRound / 2; 
+
+        if (nextRound < 1) {
+            System.out.println("⏹️ Ini adalah Final. Tidak ada next round.");
+            return; 
+        }
+
+        // Rumus Index: (1,2 -> 1), (3,4 -> 2)
+        int nextBracketIndex = (currentMatch.getBracketIndex() + 1) / 2;
+
+        // 3. Tentukan Slot (Home/Away)
+        // Ganjil (1, 3) -> Home, Genap (2, 4) -> Away
+        boolean isHomeSlot = (currentMatch.getBracketIndex() % 2 != 0);
+        String columnTarget = isHomeSlot ? "home_team_id" : "away_team_id";
+
+        System.out.println("Target Update: Round " + nextRound + ", Index " + nextBracketIndex + ", Slot: " + columnTarget);
+
+        // 4. Update Database
+        String sql = "UPDATE matches SET " + columnTarget + " = ? " +
+                     "WHERE tournament_id = ? AND round_number = ? AND bracket_index = ?";
+
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, winnerTeamId);
+            stmt.setInt(2, currentMatch.getTournamentId());
+            stmt.setInt(3, nextRound);
+            stmt.setInt(4, nextBracketIndex);
+            
+            int updated = stmt.executeUpdate();
+            if (updated > 0) {
+                System.out.println("✅ SUKSES! Database berhasil diupdate.");
+            } else {
+                System.out.println("❌ GAGAL UPDATE! Baris target tidak ditemukan di Database.");
+                System.out.println("SARAN: Buat Turnamen BARU agar struktur bracket digenerate ulang dengan benar.");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        System.out.println("----------------------------");
+    }
+    
 }

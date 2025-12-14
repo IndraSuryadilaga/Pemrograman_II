@@ -17,8 +17,9 @@
     <HBox spacing="20">
         <VBox styleClass="card" minWidth="300" spacing="5">
             <VBox spacing="2">
-                <Label text="Pilih Turnamen:" styleClass="text-muted" style="-fx-font-size: 10px;"/>
-                <ComboBox fx:id="cbTournament" prefWidth="250" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                <Label text="Pilih Turnamen" textFill="grey" style="-fx-font-size: 12px;"/>
+    			<ComboBox fx:id="cbTournament" prefWidth="300" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    			<Label fx:id="lblSportType" text="-" style="-fx-font-size: 14px; -fx-text-fill: #3498db; -fx-font-weight: bold;"/>	
             </VBox>
             
             <Label fx:id="lblSportType" text="-" style="-fx-text-fill: #3498db; -fx-font-weight: bold;"/>

@@ -42,6 +42,10 @@ public class Match extends BaseModel {
     public int getHomeScore() { return homeScore; }
     public int getAwayScore() { return awayScore; }
     
+    public void setHomeScore(int homeScore) { this.homeScore = homeScore; }
+
+    public void setAwayScore(int awayScore) { this.awayScore = awayScore; }
+    
     @Override
     public String toString() {
         return homeTeamName + " vs " + awayTeamName;
