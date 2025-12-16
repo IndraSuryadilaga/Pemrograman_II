@@ -7,7 +7,14 @@ import model.Team;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -138,5 +145,107 @@ public class TournamentController {
         } else {
             lblStatus.setText("Gagal menyimpan ke database.");
         }
+    }
+    
+    private String formatQuarterDetails(java.util.Map<Integer, Integer> quarterMap) {
+        if (quarterMap == null || quarterMap.isEmpty()) return "";
+        
+        StringBuilder sb = new StringBuilder("(");
+        // Loop quarter 1 sampai 4 (atau lebih jika OT)
+        int maxQ = quarterMap.keySet().stream().max(Integer::compare).orElse(4);
+        
+        for (int i = 1; i <= maxQ; i++) {
+            int score = quarterMap.getOrDefault(i, 0);
+            sb.append(score);
+            if (i < maxQ) sb.append(", ");
+        }
+        sb.append(")");
+        return sb.toString(); // Output contoh: "(10, 15, 12, 20)"
+    }
+    
+    private VBox createMatchNode(Match match) {
+        VBox card = new VBox(5);
+        card.setPadding(new Insets(10));
+        card.setStyle("-fx-background-color: white; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);");
+        card.setMinWidth(160); // Agak dilebarkan biar muat detail skor
+        
+        // --- LOGIKA BARU: AMBIL DETAIL SKOR PER QUARTER ---
+        String homeDetail = "";
+        String awayDetail = "";
+        
+        if (match.getId() != 0) { // Hanya jika match valid
+             java.util.Map<Integer, java.util.Map<Integer, Integer>> details = matchDao.getQuarterScores(match.getId());
+             
+             // Ambil detail per tim
+             homeDetail = formatQuarterDetails(details.get(match.getHomeTeamId()));
+             awayDetail = formatQuarterDetails(details.get(match.getAwayTeamId()));
+        }
+        // -------------------------------------------------
+
+        // --- BARIS 1: HOME TEAM ---
+        HBox homeBox = new HBox(10);
+        homeBox.setAlignment(Pos.CENTER_LEFT);
+        Label lblHome = new Label(match.getHomeTeamName().isEmpty() ? "TBD" : match.getHomeTeamName());
+        lblHome.setStyle("-fx-font-weight: bold;");
+        Label lblHomeScore = new Label(String.valueOf(match.getHomeScore()));
+        
+        // Label Detail Kecil (Home)
+        Label lblHomeQ = new Label(homeDetail);
+        lblHomeQ.setStyle("-fx-font-size: 9px; -fx-text-fill: grey;"); // Font kecil
+        
+        Region spacer1 = new Region();
+        HBox.setHgrow(spacer1, Priority.ALWAYS);
+        
+        // Susun: Nama Tim --Spacer-- Skor (Detail)
+        VBox homeRight = new VBox(0); // VBox untuk skor & detail
+        homeRight.setAlignment(Pos.CENTER_RIGHT);
+        homeRight.getChildren().addAll(lblHomeScore, lblHomeQ);
+        
+        homeBox.getChildren().addAll(lblHome, spacer1, homeRight);
+
+        // --- SEPARATOR ---
+        Separator sep = new Separator();
+
+        // --- BARIS 2: AWAY TEAM ---
+        HBox awayBox = new HBox(10);
+        awayBox.setAlignment(Pos.CENTER_LEFT);
+        Label lblAway = new Label(match.getAwayTeamName().isEmpty() ? "TBD" : match.getAwayTeamName());
+        lblAway.setStyle("-fx-font-weight: bold;");
+        Label lblAwayScore = new Label(String.valueOf(match.getAwayScore()));
+        
+        // Label Detail Kecil (Away)
+        Label lblAwayQ = new Label(awayDetail);
+        lblAwayQ.setStyle("-fx-font-size: 9px; -fx-text-fill: grey;"); // Font kecil
+        
+        Region spacer2 = new Region();
+        HBox.setHgrow(spacer2, Priority.ALWAYS);
+
+        // Susun: Nama Tim --Spacer-- Skor (Detail)
+        VBox awayRight = new VBox(0);
+        awayRight.setAlignment(Pos.CENTER_RIGHT);
+        awayRight.getChildren().addAll(lblAwayScore, lblAwayQ);
+        
+        awayBox.getChildren().addAll(lblAway, spacer2, awayRight);
+
+        // --- INFO TAMBAHAN (WAKTU/STATUS) ---
+        Label lblStatus = new Label();
+        if (match.isFinished()) {
+            lblStatus.setText("FINAL");
+            lblStatus.setStyle("-fx-font-size: 10px; -fx-text-fill: #27ae60; -fx-font-weight: bold;");
+        } else if (match.getHomeTeamName().isEmpty() || match.getAwayTeamName().isEmpty()) {
+             lblStatus.setText("Waiting...");
+             lblStatus.setStyle("-fx-font-size: 10px; -fx-text-fill: grey;");
+        } else {
+            // Tampilkan Quarter saat ini jika sedang main
+            lblStatus.setText("LIVE - Q" + match.getCurrentQuarter());
+            lblStatus.setStyle("-fx-font-size: 10px; -fx-text-fill: #e67e22; -fx-font-weight: bold;");
+            
+            // Tambah event klik untuk membuka Match Operator
+            card.setOnMouseClicked(e -> controller.MainController.getInstance().openMatchOperator(match));
+            card.setCursor(javafx.scene.Cursor.HAND);
+        }
+
+        card.getChildren().addAll(lblStatus, homeBox, sep, awayBox);
+        return card;
     }
 }

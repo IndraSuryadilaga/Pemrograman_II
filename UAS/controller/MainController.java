@@ -1,5 +1,8 @@
 package controller;
 
+import dao.TournamentDao;
+import model.Match;
+import model.Tournament;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -9,9 +12,16 @@ import java.io.IOException;
 
 public class MainController {
 
+    // --- SINGLETON PATTERN ---
+    private static MainController instance;
+
+    public static MainController getInstance() {
+        return instance;
+    }
+    // -------------------------
+
     @FXML private StackPane contentArea;
     
-    // Import Button
     @FXML private Button btnDashboard;
     @FXML private Button btnNewTournament;
     @FXML private Button btnTeam;
@@ -19,44 +29,91 @@ public class MainController {
 
     @FXML
     public void initialize() {
-        // Default buka Dashboard
-        showDashboard();
+        instance = this; // Set instance saat aplikasi mulai
+        showDashboard(); // Default view
     }
 
-    @FXML private void showDashboard() {
+    // --- METHOD NAVIGASI MENU ---
+    
+    @FXML 
+    public void showDashboard() {
         loadView("/view/DashboardView.fxml");
-        setActiveButton(btnDashboard); // Set tombol aktif
+        setActiveButton(btnDashboard); 
     }
 
-    @FXML private void showNewTournament() {
+    @FXML 
+    public void showNewTournament() {
         loadView("/view/NewTournamentView.fxml");
-        setActiveButton(btnNewTournament); // Set tombol aktif
+        setActiveButton(btnNewTournament); 
     }
 
-    @FXML private void showTeamData() {
+    @FXML 
+    public void showTeamData() {
         loadView("/view/TeamView.fxml");
-        setActiveButton(btnTeam); // Set tombol aktif
+        setActiveButton(btnTeam); 
     }
 
-    @FXML private void showHistory() {
+    @FXML 
+    public void showHistory() {
         loadView("/view/HistoryView.fxml");
-        setActiveButton(btnHistory); // Set tombol aktif
+        setActiveButton(btnHistory); 
     }
 
-    // --- LOGIKA TOMBOL AKTIF ---
+    // --- METHOD BARU: BUKA MATCH OPERATOR ---
+    // Ini method yang dicari oleh TournamentController
+    public void openMatchOperator(Match match) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/MatchOperatorView.fxml"));
+            Parent view = loader.load();
+
+            // 1. Ambil Controllernya
+            MatchOperatorController controller = loader.getController();
+            
+            // 2. Tentukan Jenis Olahraga (Basket/Badminton) berdasarkan ID Turnamen di Match
+            String sportName = "Basket"; // Default
+            TournamentDao tournamentDao = new TournamentDao();
+            
+            // Ambil data turnamen dari database berdasarkan match.getTournamentId()
+            // Pastikan MatchDao/Model Match Anda memiliki method getTournamentId()
+            Tournament t = tournamentDao.get(match.getTournamentId());
+            
+            if (t != null) {
+                if (t.getSportId() == 1) sportName = "Basket";
+                if (t.getSportId() == 2) sportName = "Badminton";
+            }
+
+            // 3. Kirim Data ke Operator
+            controller.setMatchData(match, sportName);
+
+            // 4. Ganti Tampilan Utama
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(view);
+            
+            // Matikan highlight tombol menu karena sedang tidak di menu utama
+            setActiveButton(null);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Gagal membuka Match Operator: " + e.getMessage());
+        }
+    }
+
+    // --- LOGIKA TOMBOL AKTIF & LOAD VIEW ---
+    
     private void setActiveButton(Button activeButton) {
-        // 1. Hapus class "active" dari SEMUA tombol
-        btnDashboard.getStyleClass().remove("active");
-        btnNewTournament.getStyleClass().remove("active");
-        btnTeam.getStyleClass().remove("active");
-        btnHistory.getStyleClass().remove("active");
+        // Reset semua
+        if(btnDashboard != null) btnDashboard.getStyleClass().remove("active");
+        if(btnNewTournament != null) btnNewTournament.getStyleClass().remove("active");
+        if(btnTeam != null) btnTeam.getStyleClass().remove("active");
+        if(btnHistory != null) btnHistory.getStyleClass().remove("active");
 
-        // 2. Tambahkan class "active" ke tombol yang BARU DIKLIK
-        // Class "active" ini yang kita definisikan warnanya di CSS tadi
-        activeButton.getStyleClass().add("active");
+        // Set yang baru
+        if (activeButton != null) {
+            activeButton.getStyleClass().add("active");
+        }
     }
 
-    private void loadView(String fxmlPath) {
+    public void loadView(String fxmlPath) {
         try {
             Parent view = FXMLLoader.load(getClass().getResource(fxmlPath));
             contentArea.getChildren().clear();

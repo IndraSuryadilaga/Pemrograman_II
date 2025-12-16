@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -17,69 +16,56 @@
     <BorderPane style="-fx-background-color: #ecf0f1;">
         
         <top>
-            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: #375999; -fx-padding: 20;">
-                <Label fx:id="lblTournamentName" text="Tournament Name" textFill="WHITE">
-               <font>
-                  <Font name="System Bold" size="18.0" />
-               </font></Label>
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: #2c3e50; -fx-padding: 15;">
+                <Label fx:id="lblTournamentName" text="Tournament Name" textFill="WHITE" />
                 
                 <HBox alignment="CENTER" spacing="50">
                     <VBox alignment="CENTER">
                         <Label fx:id="lblHomeName" style="-fx-font-size: 24px; -fx-font-weight: bold;" text="HOME" textFill="#3498db" />
-                        <Label fx:id="lblHomeScore" style="-fx-font-weight: bold;" text="0" textFill="WHITE">
-                     <font>
-                        <Font size="64.0" />
-                     </font></Label>
+                        <Label fx:id="lblHomeScore" style="-fx-font-size: 60px; -fx-font-weight: bold;" text="0" textFill="WHITE" />
                     </VBox>
                     
-                    <Label text="VS" textFill="WHITE">
-                  <font>
-                     <Font name="System Bold" size="36.0" />
-                  </font></Label>
+                    <VBox alignment="CENTER" spacing="5" style="-fx-background-color: black; -fx-padding: 8 32; -fx-border-color: #7f8c8d; -fx-border-width: 2;">
+                        <Label fx:id="lblQuarter" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Q1" textFill="WHITE" />
+                        <Label fx:id="lblTimer" text="10:00" textFill="#f1c40f">
+                     <font>
+                        <Font name="System Bold" size="48.0" />
+                     </font></Label>
+                        
+                        <HBox alignment="CENTER" spacing="10" />
+                    </VBox>
                     
                     <VBox alignment="CENTER">
                         <Label fx:id="lblAwayName" style="-fx-font-size: 24px; -fx-font-weight: bold;" text="AWAY" textFill="#e74c3c" />
-                        <Label fx:id="lblAwayScore" style="-fx-font-weight: bold;" text="0" textFill="WHITE">
-                     <font>
-                        <Font size="64.0" />
-                     </font></Label>
+                        <Label fx:id="lblAwayScore" style="-fx-font-size: 60px; -fx-font-weight: bold;" text="0" textFill="WHITE" />
                     </VBox>
                 </HBox>
-
-                <Separator style="-fx-opacity: 1;" />
-            <HBox alignment="CENTER" prefHeight="0.0" prefWidth="864.0" spacing="64.0">
-               <children>
-                      
-                            <Button onAction="#handleBack" style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8 16; -fx-cursor: hand; -fx-font-weight: bold;" text="Kembali Ke Dashboard" textFill="#141414" />
-                      
-                            <Button fx:id="btnFinish" onAction="#handleFinishMatch" style="-fx-background-color: #f1c40f; -fx-background-radius: 8; -fx-font-weight: bold; -fx-padding: 8 16; -fx-cursor: hand; -fx-border-radius: 8;" text="Akhiri Pertandingan" textFill="#141414">
-                     <opaqueInsets>
-                        <Insets />
-                     </opaqueInsets>
-                  </Button>
-               </children>
-            </HBox>
-                 </VBox>
+                
+                <HBox alignment="CENTER" spacing="20">
+                    <Button maxWidth="180.0" minWidth="170.0" onAction="#handleBack" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16;" text="BACK TO DASHBOARD" />
+                    
+                    <Button fx:id="btnTimerControl" minWidth="80.0" onAction="#handleTimerToggle" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16;" text="▶ START" />
+                    
+                    <Button text="⏩ SKIP" onAction="#handleDebugSkip" style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16;"/>
+                    
+                    <Button fx:id="btnNextQuarter" disable="true" minWidth="80.0" onAction="#handleNextQuarter" style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16;" text="NEXT Q" />
+                    <Button fx:id="btnFinish" disable="true" maxWidth="180.0" minWidth="170.0" onAction="#handleFinishMatch" style="-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16;" text="🏁 FINISH GAME" />
+                </HBox>
+            </VBox>
         </top>
 
         <center>
             <HBox spacing="20" style="-fx-padding: 20;">
-                <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 8;" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-weight: bold; -fx-text-fill: #3498db;" text="Pemain Home">
-                  <font>
-                     <Font size="16.0" />
-                  </font></Label>
-                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 5;" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-weight: bold; -fx-text-fill: #3498db;" text="Pemain Home" />
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
                          <FlowPane fx:id="fpHomePlayers" hgap="10" vgap="10" />
                     </ScrollPane>
                 </VBox>
 
-                <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 8;" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;" text="Pemain Away">
-                  <font>
-                     <Font size="16.0" />
-                  </font></Label>
-                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 5;" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;" text="Pemain Away" />
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
                          <FlowPane fx:id="fpAwayPlayers" hgap="10" vgap="10" />
                     </ScrollPane>
                 </VBox>
@@ -101,21 +87,11 @@
             </HBox>
             <Button fx:id="btnScore3" onAction="#handleActionScore3" style="-fx-base: #219150; -fx-pref-width: 310;" text="+3 Poin" />
             
-			<Separator />
-            
-            <Label style="-fx-font-size: 10px;" text="Koreksi (Anulir Poin)" textFill="red" />
-            <HBox alignment="CENTER" spacing="10">
-                <Button onAction="#handleCorrection1" style="-fx-base: #e74c3c; -fx-pref-width: 60;" text="-1" />
-                <Button onAction="#handleCorrection2" style="-fx-base: #e74c3c; -fx-pref-width: 60;" text="-2" />
-                <Button onAction="#handleCorrection3" style="-fx-base: #e74c3c; -fx-pref-width: 60;" text="-3" />
-            </HBox>
-
             <Separator />
             
             <Label style="-fx-font-weight: bold;" text="Pelanggaran (Foul)" />
             <HBox alignment="CENTER" spacing="10">
                 <Button onAction="#handleActionFoul" style="-fx-base: #e74c3c; -fx-pref-width: 150;" text="Personal Foul" />
-                <Button style="-fx-base: #c0392b; -fx-pref-width: 150;" text="Technical Foul" />
             </HBox>
 
             <Separator />

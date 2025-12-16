@@ -13,6 +13,9 @@ public class Match extends BaseModel {
     private String awayTeamName;
     private String tournamentName;
     private String matchDate;
+    private int currentQuarter = 1;
+    private int remainingSeconds = 600;
+    private boolean isTimerRunning = false;
 
     public Match() { super(0); }
 
@@ -53,6 +56,15 @@ public class Match extends BaseModel {
     public void setHomeScore(int homeScore) { this.homeScore = homeScore; }
 
     public void setAwayScore(int awayScore) { this.awayScore = awayScore; }
+    
+    public int getCurrentQuarter() { return currentQuarter; }
+    public void setCurrentQuarter(int currentQuarter) { this.currentQuarter = currentQuarter; }
+
+    public int getRemainingSeconds() { return remainingSeconds; }
+    public void setRemainingSeconds(int remainingSeconds) { this.remainingSeconds = remainingSeconds; }
+
+    public boolean isTimerRunning() { return isTimerRunning; }
+    public void setTimerRunning(boolean timerRunning) { isTimerRunning = timerRunning; }
     
     @Override
     public String toString() {

@@ -73,26 +73,19 @@ public class MatchDao {
     
     // === FITUR TRANSACTION LOG (MATCH EVENTS) ===
 
-    // 1. Mencatat Event (Foul, Score, dll)
-    public boolean addMatchEvent(int matchId, int playerId, String eventType, int value) {
-        String sql = "INSERT INTO match_events (match_id, player_id, event_type, event_value, game_time) VALUES (?, ?, ?, ?, ?)";
-        
+    // 1. Mencatat Event
+    public void addMatchEvent(int matchId, int playerId, String eventType, int eventValue, int quarter) {
+        String sql = "INSERT INTO match_events (match_id, player_id, event_type, event_value, timestamp, quarter) VALUES (?, ?, ?, ?, NOW(), ?)";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
             stmt.setInt(1, matchId);
             stmt.setInt(2, playerId);
-            stmt.setString(3, eventType); // 'FOUL' atau 'SCORE'
-            stmt.setInt(4, value);        // 1 jika Foul, atau poin jika Score
-            
-            // Simulasi Game Time (Ambil jam sistem saat ini)
-            String timeNow = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
-            stmt.setString(5, timeNow);
-            
-            return stmt.executeUpdate() > 0;
+            stmt.setString(3, eventType);
+            stmt.setInt(4, eventValue);
+            stmt.setInt(5, quarter); // <--- Masukkan Quarter
+            stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
     }
 
@@ -334,6 +327,52 @@ public class MatchDao {
             e.printStackTrace();
         }
         return list;
+    }
+    
+ // 1. UPDATE: Tambahkan method untuk Update Waktu & Quarter saja (biar ringan)
+    public void updateMatchState(int matchId, int quarter, int remainingSeconds) {
+        String sql = "UPDATE matches SET current_quarter = ?, remaining_seconds = ? WHERE id = ?";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, quarter);
+            stmt.setInt(2, remainingSeconds);
+            stmt.setInt(3, matchId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public java.util.Map<Integer, java.util.Map<Integer, Integer>> getQuarterScores(int matchId) {
+        java.util.Map<Integer, java.util.Map<Integer, Integer>> result = new java.util.HashMap<>();
+        
+        String sql = "SELECT team_id, quarter, SUM(event_value) as quarter_score " +
+                     "FROM match_events " +
+                     "WHERE match_id = ? AND event_type = 'SCORE' " +
+                     "GROUP BY team_id, quarter " +
+                     "ORDER BY quarter ASC";
+
+        try (java.sql.Connection conn = util.DatabaseHelper.getConnection();
+             java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, matchId);
+            java.sql.ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                int teamId = rs.getInt("team_id");
+                int quarter = rs.getInt("quarter");
+                int score = rs.getInt("quarter_score");
+
+                // Ambil Map untuk team ini, jika belum ada buat baru
+                result.putIfAbsent(teamId, new java.util.HashMap<>());
+                
+                // Masukkan skor quarter
+                result.get(teamId).put(quarter, score);
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
     
 }
