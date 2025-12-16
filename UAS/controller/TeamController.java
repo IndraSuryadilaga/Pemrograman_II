@@ -5,7 +5,6 @@ import dao.TeamDao;
 import model.Player;
 import model.Team;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -14,12 +13,14 @@ public class TeamController {
 
     // --- UI Components Team ---
     @FXML private TableView<Team> tableTeams;
+    @FXML private TableColumn<Team, Integer> colTeamId;   // <--- TAMBAHAN BARU
     @FXML private TableColumn<Team, String> colTeamName;
     @FXML private TextField tfTeamName;
 
     // --- UI Components Player ---
     @FXML private Label lblSelectedTeam;
     @FXML private TableView<Player> tablePlayers;
+    @FXML private TableColumn<Player, Integer> colPlayerId; // <--- TAMBAHAN BARU
     @FXML private TableColumn<Player, String> colPlayerName;
     @FXML private TableColumn<Player, Integer> colPlayerNo;
     @FXML private TableColumn<Player, String> colPlayerPos;
@@ -28,8 +29,8 @@ public class TeamController {
     // --- DAO & Data ---
     private TeamDao teamDao;
     private PlayerDao playerDao;
-    private Team selectedTeam; // Tim yang sedang diklik di tabel kiri
-    private Player selectedPlayer; // Pemain yang sedang diklik di tabel kanan
+    private Team selectedTeam;
+    private Player selectedPlayer;
 
     @FXML
     public void initialize() {
@@ -39,17 +40,19 @@ public class TeamController {
         setupTables();
         loadTeams();
         
-        // Disable form pemain sampai tim dipilih
         setPlayerFormState(false);
     }
 
     private void setupTables() {
-        // Setup Kolom Tabel
-        colTeamName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        
-        colPlayerName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colPlayerNo.setCellValueFactory(new PropertyValueFactory<>("jerseyNumber"));
-        colPlayerPos.setCellValueFactory(new PropertyValueFactory<>("position"));
+        // --- Setup Kolom Tabel Team ---
+        colTeamId.setCellValueFactory(new PropertyValueFactory<>("id"));     // <--- Mapping ID
+        colTeamName.setCellValueFactory(new PropertyValueFactory<>("name")); // Mapping Nama
+
+        // --- Setup Kolom Tabel Player ---
+        colPlayerId.setCellValueFactory(new PropertyValueFactory<>("id"));           // <--- Mapping ID
+        colPlayerName.setCellValueFactory(new PropertyValueFactory<>("name"));       // Mapping Nama
+        colPlayerNo.setCellValueFactory(new PropertyValueFactory<>("jerseyNumber")); // Mapping No Punggung
+        colPlayerPos.setCellValueFactory(new PropertyValueFactory<>("position"));    // Mapping Posisi
 
         // Listener Seleksi Tabel Tim
         tableTeams.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -57,10 +60,9 @@ public class TeamController {
                 selectedTeam = newVal;
                 tfTeamName.setText(newVal.getName());
                 
-                // Load Pemain dari Tim ini
                 loadPlayers(newVal.getId());
                 lblSelectedTeam.setText("Manage Pemain: " + newVal.getName());
-                setPlayerFormState(true); // Enable form pemain
+                setPlayerFormState(true); 
             }
         });
 
@@ -97,10 +99,10 @@ public class TeamController {
         String name = tfTeamName.getText();
         if (name.isEmpty()) return;
 
-        // PERBAIKAN: Tambahkan null atau "" sebagai parameter kedua (logoPath)
+        // Constructor: (Nama, LogoPath=null)
         Team t = new Team(name, null); 
         
-        if (teamDao.add(t)) { // Ubah addTeam jadi add sesuai nama method di DaoInterface
+        if (teamDao.add(t)) {
             loadTeams();
             clearTeamForm();
             showAlert("Info", "Tim berhasil ditambahkan!");
@@ -125,7 +127,6 @@ public class TeamController {
         if (teamDao.delete(selectedTeam.getId())) {
             loadTeams();
             clearTeamForm();
-            // Reset tabel pemain karena timnya hilang
             tablePlayers.getItems().clear();
             setPlayerFormState(false);
         }

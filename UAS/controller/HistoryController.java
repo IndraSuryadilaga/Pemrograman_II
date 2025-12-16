@@ -13,14 +13,16 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import java.io.File;
 import java.util.List;
-
 import util.PdfCreator;
 
 public class HistoryController {
 
     // --- TABEL UTAMA ---
     @FXML private TableView<Match> tableHistory;
-    @FXML private TableColumn<Match, Integer> colId;
+    
+    // HAPUS colId karena sudah tidak ada di FXML
+    // @FXML private TableColumn<Match, Integer> colId; 
+    
     @FXML private TableColumn<Match, String> colTournament;
     @FXML private TableColumn<Match, String> colRound;
     @FXML private TableColumn<Match, String> colHome;
@@ -30,17 +32,18 @@ public class HistoryController {
 
     // --- TABEL DETAIL ---
     @FXML private Label lblDetailHome, lblDetailAway;
+    
     @FXML private TableView<Player> tableHomeStats;
+    @FXML private TableColumn<Player, Integer> colHNum; // Kolom Nomor Punggung
     @FXML private TableColumn<Player, String> colHName;
     @FXML private TableColumn<Player, Integer> colHPoint;
     @FXML private TableColumn<Player, Integer> colHFoul;
 
     @FXML private TableView<Player> tableAwayStats;
+    @FXML private TableColumn<Player, Integer> colANum; // Kolom Nomor Punggung
     @FXML private TableColumn<Player, String> colAName;
     @FXML private TableColumn<Player, Integer> colAPoint;
     @FXML private TableColumn<Player, Integer> colAFoul;
-    @FXML private TableColumn<Player, Integer> colHNum;
-    @FXML private TableColumn<Player, Integer> colANum;
 
     private MatchDao matchDao;
 
@@ -50,7 +53,6 @@ public class HistoryController {
         setupColumns();
         loadHistory();
         
-        // Listener Seleksi Tabel
         tableHistory.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 loadMatchDetails(newVal);
@@ -60,11 +62,13 @@ public class HistoryController {
 
     private void setupColumns() {
         // --- Tabel Utama ---
-        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
-        colTournament.setCellValueFactory(new PropertyValueFactory<>("tournamentName")); // Sesuai field baru
+        // HAPUS SETUP colId
+        // colId.setCellValueFactory(new PropertyValueFactory<>("id")); 
+
+        colTournament.setCellValueFactory(new PropertyValueFactory<>("tournamentName"));
         colHome.setCellValueFactory(new PropertyValueFactory<>("homeTeamName"));
         colAway.setCellValueFactory(new PropertyValueFactory<>("awayTeamName"));
-        colTime.setCellValueFactory(new PropertyValueFactory<>("matchDate")); // Sesuai field baru
+        colTime.setCellValueFactory(new PropertyValueFactory<>("matchDate"));
 
         colRound.setCellValueFactory(cellData -> {
             int r = cellData.getValue().getRoundNumber();
@@ -78,14 +82,14 @@ public class HistoryController {
         });
         
         // --- Tabel Detail Home ---
+        colHNum.setCellValueFactory(new PropertyValueFactory<>("jerseyNumber")); // Setup No Punggung
         colHName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colHNum.setCellValueFactory(new PropertyValueFactory<>("jerseyNumber"));
         colHPoint.setCellValueFactory(new PropertyValueFactory<>("matchPoints"));
         colHFoul.setCellValueFactory(new PropertyValueFactory<>("matchFouls"));
 
         // --- Tabel Detail Away ---
+        colANum.setCellValueFactory(new PropertyValueFactory<>("jerseyNumber")); // Setup No Punggung
         colAName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colANum.setCellValueFactory(new PropertyValueFactory<>("jerseyNumber"));
         colAPoint.setCellValueFactory(new PropertyValueFactory<>("matchPoints"));
         colAFoul.setCellValueFactory(new PropertyValueFactory<>("matchFouls"));
     }
@@ -107,7 +111,6 @@ public class HistoryController {
         lblDetailAway.setText("Statistik: " + m.getAwayTeamName());
 
         // Load Data Statistik dari DAO
-        // Ingat method baru: getPlayerStatsByMatch(matchId, teamId)
         tableHomeStats.setItems(FXCollections.observableArrayList(
             matchDao.getPlayerStatsByMatch(m.getId(), m.getHomeTeamId())
         ));
@@ -116,10 +119,9 @@ public class HistoryController {
             matchDao.getPlayerStatsByMatch(m.getId(), m.getAwayTeamId())
         ));
     }
-    
+
     @FXML
     private void handleExportPDF() {
-        // 1. Ambil Match yang sedang dipilih di tabel
         Match selectedMatch = tableHistory.getSelectionModel().getSelectedItem();
         
         if (selectedMatch == null) {
@@ -127,8 +129,6 @@ public class HistoryController {
             return;
         }
 
-        // 2. Ambil Data Detail (Pemain Home & Away)
-        // Kita bisa ambil dari TableView statistik yang sudah ada datanya
         List<Player> homeStats = tableHomeStats.getItems();
         List<Player> awayStats = tableAwayStats.getItems();
 
@@ -137,23 +137,19 @@ public class HistoryController {
             return;
         }
 
-        // 3. Buka File Chooser (Mau simpan di mana?)
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Simpan Laporan PDF");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
         
-        // Nama file default: Match_ID.pdf
+        // Nama file default: Match_ID_Team_vs_Team.pdf (ID masih bisa diambil dari object Match)
         fileChooser.setInitialFileName("Match_" + selectedMatch.getId() + "_" + selectedMatch.getHomeTeamName() + "_vs_" + selectedMatch.getAwayTeamName() + ".pdf");
         
         File file = fileChooser.showSaveDialog(tableHistory.getScene().getWindow());
 
         if (file != null) {
             try {
-                // 4. GENERATE PDF!
                 PdfCreator.generateMatchReport(selectedMatch, homeStats, awayStats, file.getAbsolutePath());
-                
                 showAlert("Sukses", "Laporan berhasil disimpan di:\n" + file.getAbsolutePath());
-                
             } catch (Exception e) {
                 e.printStackTrace();
                 showAlert("Error", "Gagal membuat PDF: " + e.getMessage());

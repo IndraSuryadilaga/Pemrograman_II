@@ -1,45 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="controller.NewTournamentController" 
-      stylesheets="@application.css"
-      spacing="20" 
-      style="-fx-padding: 40;">
+<BorderPane stylesheets="@application.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.NewTournamentController">
 
-    <Label text="Buat Turnamen Baru" styleClass="text-big"/>
-    <Separator/>
+    <top>
+        <HBox alignment="CENTER_LEFT" style="-fx-padding: 8 16; -fx-background-color: #375999;">
+            <Label styleClass="top-label" text="Buat Turnamen" textFill="WHITE">
+            <font>
+               <Font name="System Bold" size="24.0" />
+            </font></Label>
+        </HBox>
+    </top>
 
-    <VBox spacing="10" styleClass="card">
-        <Label text="1. Informasi Turnamen" styleClass="label-header"/>
-        
-        <VBox spacing="5">
-            <Label text="Nama Turnamen" styleClass="field-label"/>
-            <TextField fx:id="tfTournamentName" promptText="Contoh: UAS Cup 2025" maxWidth="400"/>
+    <center>
+        <VBox spacing="20" style="-fx-padding: 12 24;">
+            
+            <VBox spacing="12.0" styleClass="card">
+                
+                <VBox spacing="5">
+                    <Label styleClass="field-label" text="Nama Turnamen">
+                  <font>
+                     <Font name="System Bold" size="14.0" />
+                  </font></Label>
+                    <TextField fx:id="tfTournamentName" maxWidth="400" promptText="IT Cup 2025" style="-fx-padding: 8 16;" />
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label styleClass="field-label" text="Cabang Olahraga">
+                  <font>
+                     <Font name="System Bold" size="14.0" />
+                  </font></Label>
+                    <ComboBox fx:id="cbSport" prefWidth="250" promptText="Pilih Cabang Pertandngan" style="-fx-padding: 4 8;" />
+                </VBox>
+            </VBox>
+
+            <VBox styleClass="card" VBox.vgrow="ALWAYS">
+                <Label styleClass="label-header" text="Pilih Tim Peserta (Minimal 4 Tim)">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font></Label>
+                <Label style="-fx-padding: 0 0 8 0;" text="Tahan tombol CTRL untuk memilih banyak tim sekaligus" textFill="#868686" />
+                
+                <ListView fx:id="listTeams" VBox.vgrow="ALWAYS" />
+                
+                <Label fx:id="lblSelectionCount" styleClass="label-header" text="0 Tim dipilih" />
+            </VBox>
+
+            <HBox alignment="CENTER_RIGHT" spacing="20">
+                <Button style="-fx-background-color: red; -fx-padding: 8 16; -fx-background-radius: 8;" text="Batal" textFill="WHITE" />
+                <Button fx:id="btnGenerate" onAction="#handleGenerate" style="-fx-background-color: #375999; -fx-padding: 8 16; -fx-background-radius: 8;" styleClass="btn-primary" text="Generate Bracket" textFill="WHITE" />
+            </HBox>
         </VBox>
+    </center>
 
-        <VBox spacing="5">
-            <Label text="Cabang Olahraga" styleClass="field-label"/>
-            <ComboBox fx:id="cbSport" promptText="-- Pilih Sport --" prefWidth="250"/>
-        </VBox>
-    </VBox>
-
-    <VBox spacing="10" VBox.vgrow="ALWAYS" styleClass="card">
-        <Label text="2. Pilih Tim Peserta (Minimal 4 Tim)" styleClass="label-header"/>
-        <Label text="Tahan tombol CTRL untuk memilih banyak tim sekaligus" styleClass="text-muted"/>
-        
-        <ListView fx:id="listTeams" VBox.vgrow="ALWAYS"/>
-        
-        <Label fx:id="lblSelectionCount" text="0 Tim dipilih" style="-fx-text-fill: #2980b9; -fx-font-weight: bold;"/>
-    </VBox>
-
-    <HBox spacing="20" alignment="CENTER_RIGHT">
-        <Button text="Batal" style="-fx-background-color: #95a5a6; -fx-text-fill: white;"/>
-        <Button text="GENERATE BRACKET" fx:id="btnGenerate" onAction="#handleGenerate"
-                styleClass="btn-primary" style="-fx-font-size: 14px;"/>
-    </HBox>
-
-</VBox>
+</BorderPane>

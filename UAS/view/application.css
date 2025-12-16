@@ -1,186 +1,101 @@
 /* =============================================================================
-   ROOT & VARIABLES
+   KHUSUS TABLE VIEW STYLE
    ============================================================================= */
-.root {
-    -primary-color: #2c3e50;      /* Midnight Blue */
-    -secondary-color: #3498db;    /* Blue Accent */
-    -bg-color: #ecf0f1;           /* Light Grey Background */
-    -card-bg: #ffffff;            /* White Card */
-    -success-color: #27ae60;      /* Green */
-    -danger-color: #c0392b;       /* Red */
-    -text-main: #2d3436;          /* Dark Grey Text */
-    -text-light: #7f8c8d;         /* Light Grey Text */
 
-    -fx-font-family: "Segoe UI", "Roboto", sans-serif;
-    -fx-font-size: 14px;
-    -fx-background-color: -bg-color;
-}
-
-/* =============================================================================
-   LAYOUT CONTAINERS (Header, Sidebar, Forms)
-   ============================================================================= */
-.header-container {
-    -fx-background-color: -primary-color;
-    -fx-padding: 15px 25px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 8, 0, 0, 2);
-}
-
-.top-label {
-    -fx-text-fill: white;
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
-}
-
-/* Sidebar Navigation (Main View) */
-.sidebar {
-    -fx-background-color: -primary-color;
-    -fx-padding: 20px;
-}
-
-/* Container Putih (Form & Dashboard Cards) */
-.card, .form-container {
-    -fx-background-color: -card-bg;
-    -fx-padding: 20px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 5, 0, 2, 0);
-    
-    /* Rounded Corners */
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-}
-
-.form-container {
-    -fx-border-color: transparent #bdc3c7 transparent transparent; /* Khusus Form */
-}
-
-/* =============================================================================
-   TYPOGRAPHY
-   ============================================================================= */
-.label-header {
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-    -fx-text-fill: -primary-color;
-    -fx-padding: 0 0 10 0;
-}
-
-.field-label {
-    -fx-text-fill: -text-light;
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-    -fx-padding: 0 0 5 0;
-}
-
-/* Dashboard & Scoreboard Typography */
-.text-huge { -fx-font-size: 60px; -fx-font-weight: bold; }
-.text-big { -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: -primary-color; }
-.text-muted { -fx-text-fill: -text-light; -fx-font-size: 12px; }
-
-/* =============================================================================
-   INPUTS (TextField, ComboBox)
-   ============================================================================= */
-.text-field, .combo-box {
+/* Container Tabel */
+.table-view {
     -fx-background-color: white;
     -fx-border-color: #bdc3c7;
     -fx-border-width: 1px;
-    -fx-padding: 8px 12px;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
+    -fx-border-radius: 4px;
 }
 
-.text-field:focused, .combo-box:focused {
-    -fx-border-color: -secondary-color;
-    -fx-effect: dropshadow(three-pass-box, rgba(52, 152, 219, 0.2), 5, 0, 0, 0);
-}
-
-/* =============================================================================
-   BUTTONS (General & Navigation)
-   ============================================================================= */
-.button {
-    -fx-padding: 10px 20px;
-    -fx-font-weight: bold;
-    -fx-cursor: hand;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-}
-
-/* Tombol Menu di Sidebar */
-.nav-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: white;
-    -fx-alignment: CENTER_LEFT;
-    -fx-font-size: 14px;
-    -fx-padding: 12px 15px;
-}
-.nav-button:hover {
-    -fx-background-color: rgba(255,255,255,0.1); /* Efek hover halus */
-}
-.nav-button-active {
-    -fx-background-color: -secondary-color; /* Tombol aktif berwarna biru */
-    -fx-text-fill: white;
-}
-
-/* Action Buttons */
-#btnSave, .btn-primary {
-    -fx-background-color: -success-color;
-    -fx-text-fill: white;
-}
-#btnSave:hover, .btn-primary:hover { -fx-background-color: derive(-success-color, -10%); }
-
-#btnDelete, .btn-danger {
-    -fx-background-color: white;
-    -fx-text-fill: -danger-color;
-    -fx-border-color: -danger-color;
-    -fx-border-width: 1.5px;
-}
-#btnDelete:hover, .btn-danger:hover {
-    -fx-background-color: -danger-color;
-    -fx-text-fill: white;
-}
-
-/* =============================================================================
-   TABLES & LISTS
-   ============================================================================= */
-.table-view, .list-view {
-    -fx-background-color: transparent;
-    -fx-border-color: #bdc3c7;
-    -fx-border-width: 1px;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-padding: 1px;
-}
-
-/* Header Table */
+/* 1. Header Background Biru #375999 & Text Putih */
 .table-view .column-header-background {
-    -fx-background-color: -primary-color;
-    -fx-background-radius: 10 10 0 0;
+    -fx-background-color: #375999;
+    -fx-background-radius: 4px 4px 0 0;
+    -fx-background-insets: 0;
+	-fx-padding: 8px;
 }
+
+/* 2. Header Text: Ukuran 16px, Padding Vertikal 8px */
 .table-view .column-header .label {
     -fx-text-fill: white;
     -fx-font-weight: bold;
+    -fx-font-size: 14px;
     -fx-alignment: CENTER;
 }
 
-/* Cells */
-.table-cell, .list-cell {
-    -fx-padding: 0 15px;
-    -fx-text-fill: -text-main;
-    -fx-border-color: transparent #bdc3c7 #bdc3c7 transparent;
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-padding: 8px 10px 8px 10px; /* Atas Kanan Bawah Kiri */
+    -fx-border-color: transparent rgba(255,255,255,0.3) transparent transparent; /* Garis pemisah tipis */
 }
 
-/* List View Specific */
-.list-cell {
-    -fx-background-color: white;
-    -fx-padding: 10px;
+/* 3. Isi Cell: Ukuran 12px, Padding 8px */
+.table-cell {
+    -fx-font-size: 12px;
+    -fx-padding: 4px 8px; 
+    -fx-alignment: CENTER-LEFT;
+    -fx-text-fill: #2c3e50;
+    -fx-border-color: transparent transparent #ecf0f1 transparent; /* Garis bawah tipis antar baris */
 }
-.list-cell:filled:selected, .list-cell:filled:selected:hover {
-    -fx-background-color: -secondary-color;
+
+/* 4. Warna Berbeda (Zebra Striping) */
+.table-row-cell {
+    -fx-background-color: white;      /* Baris Genap: Putih */
+    -fx-cell-size: 40px;              /* Tinggi baris agar padding 8px muat */
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #f4f6f8;    /* Baris Ganjil: Abu Muda (Biar kontras dengan putih) */
+}
+
+/* Efek Hover (Saat mouse lewat) */
+.table-row-cell:hover {
+    -fx-background-color: #e3f2fd;    /* Biru sangat muda */
+    -fx-cursor: hand;
+}
+
+/* Saat Baris Dipilih */
+.table-row-cell:selected {
+    -fx-background-color: #3498db;    /* Biru Highlight */
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: white;             /* Teks jadi putih saat dipilih */
+}
+
+/* Style Dasar Tombol Navigasi */
+.nav-button {
+    -fx-background-color: #1f427a;  /* Warna Biru Gelap (Default) */
+    -fx-text-fill: #d1d1d1;         /* Teks Abu-abu */
+    -fx-font-size: 14px;
+    -fx-background-radius: 8;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-alignment: BASELINE_LEFT;   /* Rata kiri agar ikon rapi */
+}
+
+/* KONDISI 1: HOVER (Saat Mouse Di Atas Tombol) */
+.nav-button:hover {
+    -fx-background-color: #2c5aa0;  /* Jadi lebih terang */
+    -fx-text-fill: white;           /* Teks jadi putih */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 1);
+}
+
+/* KONDISI 2: PRESSED (Saat Tombol Ditekan Tahan) */
+.nav-button:pressed {
+    -fx-background-color: #152e55;  /* Jadi lebih gelap */
+}
+
+/* KONDISI 3: ACTIVE (Menu Sedang Dipilih/Dibuka) */
+/* Class ini akan kita tambahkan lewat Controller nanti */
+.nav-button.active {
+    -fx-background-color: #4a90e2;  /* Biru Cerah (Highlight) */
     -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-border-color: white;        /* Optional: Border putih */
+    -fx-border-width: 0 0 0 4;      /* Border hanya di kiri */
+    -fx-border-radius: 0;           /* Reset radius border */
 }
-.list-cell:filled:hover {
-    -fx-background-color: #d6eaf8;
-}
-
-/* Rows */
-.table-row-cell { -fx-background-color: #f7f9fa; -fx-cell-size: 45px; }
-.table-row-cell:odd { -fx-background-color: #ebeff0; }
-.table-row-cell:selected { -fx-background-color: -secondary-color; }
-.table-row-cell:selected .text { -fx-fill: white; }

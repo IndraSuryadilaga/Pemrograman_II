@@ -1,44 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.ComboBox?> 
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="controller.DashboardController" 
-      spacing="20" 
-      stylesheets="@application.css"
-      style="-fx-padding: 30;">
+<BorderPane stylesheets="@application.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.DashboardController">
     
-    <HBox spacing="20">
-        <VBox styleClass="card" minWidth="300" spacing="5">
-            <VBox spacing="2">
-                <Label text="Pilih Turnamen" textFill="grey" style="-fx-font-size: 12px;"/>
-    			<ComboBox fx:id="cbTournament" prefWidth="300" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-    			<Label fx:id="lblSportType" text="-" style="-fx-font-size: 14px; -fx-text-fill: #3498db; -fx-font-weight: bold;"/>	
-            </VBox>
-            
-            <Label fx:id="lblSportType" text="-" style="-fx-text-fill: #3498db; -fx-font-weight: bold;"/>
-        </VBox>
-        
-        <VBox styleClass="card" minWidth="250">
-             <Label text="Total Pertandingan" styleClass="text-muted"/>
-             <Label fx:id="lblTotalMatches" text="0" styleClass="text-big"/>
-        </VBox>
-    </HBox>
+    <top>
+        <HBox alignment="CENTER_LEFT" style="-fx-padding: 8 16; -fx-background-color: #375999;" styleClass="header-container">
+            <Label styleClass="top-label" text="Dashboard" textFill="WHITE">
+            <font>
+               <Font name="System Bold" size="24.0" />
+            </font></Label>
+        </HBox>
+    </top>
 
-    <Separator/>
-    
-    <Label text="Visual Bracket (Live)" styleClass="label-header"/>
-
-    <ScrollPane fitToHeight="true" vbarPolicy="NEVER" 
-                style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
-        <HBox fx:id="bracketContainer" spacing="60" alignment="CENTER_LEFT" style="-fx-padding: 10;">
+    <center>
+        <VBox spacing="20" style="-fx-padding: 30;">
+            <HBox spacing="20">
+                <VBox minWidth="300" spacing="5" styleClass="card">
+                    <VBox spacing="2">
+                        <Label style="-fx-font-size: 12px;" styleClass="text-muted" text="Pilih Turnamen" />
+                        <ComboBox fx:id="cbTournament" prefWidth="300" style="-fx-font-size: 14px; -fx-padding: 4; -fx-font-weight: bold;" />
+                    </VBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label styleClass="text-muted" text="Sistem:" />
+                        <Label fx:id="lblSportType" style="-fx-text-fill: #3498db; -fx-font-weight: bold;" text="-" />
+                    </HBox>
+                </VBox>
+                
+                <VBox minWidth="250" styleClass="card">
+                     <Label styleClass="text-muted" text="Total Pertandingan" />
+                     <Label fx:id="lblTotalMatches" styleClass="text-big" text="0" />
+                </VBox>
             </HBox>
-    </ScrollPane>
+
+            <Separator style="-fx-border-width: 2;" />
+            
+            <Label styleClass="label-header" text="Visual Bracket (Live)" />
+
+            <ScrollPane fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" vbarPolicy="NEVER">
+                <HBox fx:id="bracketContainer" alignment="CENTER_LEFT" spacing="60" style="-fx-padding: 10;">
+                </HBox>
+            </ScrollPane>
+        </VBox>
+    </center>
     
-</VBox>
+</BorderPane>

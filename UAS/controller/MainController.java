@@ -11,7 +11,7 @@ public class MainController {
 
     @FXML private StackPane contentArea;
     
-    // 1. Deklarasi Button dari FXML
+    // Import Button
     @FXML private Button btnDashboard;
     @FXML private Button btnNewTournament;
     @FXML private Button btnTeam;
@@ -19,40 +19,41 @@ public class MainController {
 
     @FXML
     public void initialize() {
-        // Set default view ke Dashboard
+        // Default buka Dashboard
         showDashboard();
     }
 
     @FXML private void showDashboard() {
         loadView("/view/DashboardView.fxml");
-        updateActiveButton(btnDashboard); // Update warna tombol
+        setActiveButton(btnDashboard); // Set tombol aktif
     }
 
     @FXML private void showNewTournament() {
         loadView("/view/NewTournamentView.fxml");
-        updateActiveButton(btnNewTournament); // Update warna tombol
+        setActiveButton(btnNewTournament); // Set tombol aktif
     }
 
     @FXML private void showTeamData() {
         loadView("/view/TeamView.fxml");
-        updateActiveButton(btnTeam); // Update warna tombol
+        setActiveButton(btnTeam); // Set tombol aktif
     }
 
-    @FXML
-    private void showHistory() {
+    @FXML private void showHistory() {
         loadView("/view/HistoryView.fxml");
+        setActiveButton(btnHistory); // Set tombol aktif
     }
 
-    // 2. Method Helper untuk Mengatur Style Tombol
-    private void updateActiveButton(Button activeButton) {
-        // Hapus class 'nav-button-active' dari SEMUA tombol
-        btnDashboard.getStyleClass().remove("nav-button-active");
-        btnNewTournament.getStyleClass().remove("nav-button-active");
-        btnTeam.getStyleClass().remove("nav-button-active");
-        btnHistory.getStyleClass().remove("nav-button-active");
+    // --- LOGIKA TOMBOL AKTIF ---
+    private void setActiveButton(Button activeButton) {
+        // 1. Hapus class "active" dari SEMUA tombol
+        btnDashboard.getStyleClass().remove("active");
+        btnNewTournament.getStyleClass().remove("active");
+        btnTeam.getStyleClass().remove("active");
+        btnHistory.getStyleClass().remove("active");
 
-        // Tambahkan class 'nav-button-active' HANYA ke tombol yang diklik
-        activeButton.getStyleClass().add("nav-button-active");
+        // 2. Tambahkan class "active" ke tombol yang BARU DIKLIK
+        // Class "active" ini yang kita definisikan warnanya di CSS tadi
+        activeButton.getStyleClass().add("active");
     }
 
     private void loadView(String fxmlPath) {
