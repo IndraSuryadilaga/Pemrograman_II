@@ -1,5 +1,6 @@
-package model; // Sesuaikan dengan package Anda (misal: com.sporta.model)
+package model;
 
+// Player mewarisi BaseModel dengan field private (Inheritance dan Encapsulation)
 public class Player extends BaseModel {
     private int teamId;
     private int jerseyNumber;
@@ -8,24 +9,33 @@ public class Player extends BaseModel {
     private String name;
     private String position;
 
+    // Constructor default untuk membuat Player baru
     public Player() {
         super(0);
     }
 
+    // Constructor untuk membuat Player dari data database dengan ID
     public Player(int id, int teamId, String name, int jerseyNumber, String position) {
-        super(id); // Set ID ke BaseModel
+        super(id);
         this.teamId = teamId;
         this.name = name;
         this.jerseyNumber = jerseyNumber;
         this.position = position;
     }
 
+    // Constructor untuk membuat Player baru tanpa ID (Constructor Overloading)
     public Player(int teamId, String name, int jerseyNumber, String position) {
         super(0);
         this.teamId = teamId;
         this.name = name;
         this.jerseyNumber = jerseyNumber;
         this.position = position;
+    }
+    
+    // Override toString() untuk menampilkan nama dan nomor jersey (Polymorphism - Method Override)
+    @Override
+    public String toString() {
+        return name + " (#" + jerseyNumber + ")";
     }
 
     public int getTeamId() { return teamId; }
@@ -45,9 +55,4 @@ public class Player extends BaseModel {
 
     public int getMatchFouls() { return matchFouls; }
     public void setMatchFouls(int matchFouls) { this.matchFouls = matchFouls; }
-    
-    @Override
-    public String toString() {
-        return name + " (#" + jerseyNumber + ")";
-    }
 }

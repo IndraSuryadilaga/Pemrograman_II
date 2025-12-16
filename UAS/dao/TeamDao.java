@@ -6,8 +6,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// DAO untuk mengelola operasi database terkait Team menggunakan PreparedStatement dan try-with-resources
 public class TeamDao implements DaoInterface<Team> {
 
+    // Mengambil semua team dari database
     @Override
     public List<Team> getAll() {
         List<Team> list = new ArrayList<>();
@@ -18,7 +20,6 @@ public class TeamDao implements DaoInterface<Team> {
              ResultSet rs = stmt.executeQuery()) {
             
             while (rs.next()) {
-                // Mapping dari Row Database ke Object Java
                 Team t = new Team(
                     rs.getInt("id"),
                     rs.getString("name"),
@@ -32,6 +33,7 @@ public class TeamDao implements DaoInterface<Team> {
         return list;
     }
 
+    // Mengambil satu team berdasarkan ID menggunakan PreparedStatement
     @Override
     public Team get(int id) {
         Team t = null;
@@ -40,15 +42,16 @@ public class TeamDao implements DaoInterface<Team> {
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            stmt.setInt(1, id); // Set parameter ? pertama dengan ID
-            ResultSet rs = stmt.executeQuery();
+            stmt.setInt(1, id);
             
-            if (rs.next()) {
-                t = new Team(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getString("logo_path")
-                );
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    t = new Team(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("logo_path")
+                    );
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -56,13 +59,14 @@ public class TeamDao implements DaoInterface<Team> {
         return t;
     }
 
+    // Menambahkan team baru ke database
     @Override
     public boolean add(Team team) {
     	String sql = "INSERT INTO teams (name, logo_path) VALUES (?, ?)";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, team.getName());
-            stmt.setString(2, team.getLogoPath()); // Boleh null/kosong dulu
+            stmt.setString(2, team.getLogoPath());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -70,6 +74,7 @@ public class TeamDao implements DaoInterface<Team> {
         }
     }
 
+    // Mengupdate nama team di database
     @Override
     public boolean update(Team team) {
     	String sql = "UPDATE teams SET name = ? WHERE id = ?";
@@ -84,6 +89,7 @@ public class TeamDao implements DaoInterface<Team> {
         }
     }
 
+    // Menghapus team dari database berdasarkan ID
     @Override
     public boolean delete(int id) {
     	String sql = "DELETE FROM teams WHERE id = ?";

@@ -6,12 +6,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// DAO untuk mengelola operasi database terkait Tournament menggunakan PreparedStatement dan try-with-resources
 public class TournamentDao implements DaoInterface<Tournament> {
 
+    // Mengambil semua tournament dari database diurutkan dari yang terbaru
     @Override
     public List<Tournament> getAll() {
         List<Tournament> list = new ArrayList<>();
-        String sql = "SELECT * FROM tournaments ORDER BY id DESC"; // Yang terbaru paling atas
+        String sql = "SELECT * FROM tournaments ORDER BY id DESC";
         
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -33,7 +35,7 @@ public class TournamentDao implements DaoInterface<Tournament> {
         return list;
     }
 
-    // --- METHOD YANG SEBELUMNYA HILANG ---
+    // Mengambil satu tournament berdasarkan ID menggunakan PreparedStatement
     @Override
     public Tournament get(int id) {
         Tournament t = null;
@@ -43,16 +45,17 @@ public class TournamentDao implements DaoInterface<Tournament> {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
             
-            if (rs.next()) {
-                t = new Tournament(
-                    rs.getInt("id"),
-                    rs.getInt("sport_id"),
-                    rs.getString("name"),
-                    rs.getDate("start_date"),
-                    rs.getString("status")
-                );
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    t = new Tournament(
+                        rs.getInt("id"),
+                        rs.getInt("sport_id"),
+                        rs.getString("name"),
+                        rs.getDate("start_date"),
+                        rs.getString("status")
+                    );
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -60,11 +63,9 @@ public class TournamentDao implements DaoInterface<Tournament> {
         return t;
     }
 
-    // --- METHOD ADD (Untuk Turnamen Baru) ---
+    // Menambahkan tournament baru ke database dengan konversi java.util.Date ke java.sql.Date
     @Override
     public boolean add(Tournament t) {
-        // ID auto increment, jadi tidak perlu di-insert
-        // start_date di Java Date perlu convert ke SQL Date
         String sql = "INSERT INTO tournaments (sport_id, name, start_date, status) VALUES (?, ?, ?, ?)";
         
         try (Connection conn = DatabaseHelper.getConnection();
@@ -72,9 +73,9 @@ public class TournamentDao implements DaoInterface<Tournament> {
             
             stmt.setInt(1, t.getSportId());
             stmt.setString(2, t.getName());
-            // Konversi java.util.Date ke java.sql.Date
+            // Konversi java.util.Date ke java.sql.Date untuk kompatibilitas database
             stmt.setDate(3, new java.sql.Date(t.getStartDate().getTime()));
-            stmt.setString(4, t.getStatus()); // Biasanya "OPEN" atau "ONGOING"
+            stmt.setString(4, t.getStatus());
             
             return stmt.executeUpdate() > 0;
             
@@ -84,16 +85,15 @@ public class TournamentDao implements DaoInterface<Tournament> {
         }
     }
 
-    // --- Implementasi kosong untuk Update/Delete jika belum dipakai ---
+    // Update tournament (implementasi kosong, belum digunakan)
     @Override
     public boolean update(Tournament t) {
-        // Implementasi update jika diperlukan nanti
         return false;
     }
 
+    // Delete tournament (implementasi kosong, belum digunakan)
     @Override
     public boolean delete(int id) {
-        // Implementasi delete jika diperlukan nanti
         return false;
     }
 }

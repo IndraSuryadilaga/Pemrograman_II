@@ -5,9 +5,6 @@ import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
@@ -18,73 +15,49 @@ import model.Player;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+// Utility class untuk men-generate laporan pertandingan dalam format PDF menggunakan library iText
 public class PdfCreator {
 
+    // Membuat dokumen PDF berisi detail pertandingan dan statistik pemain kedua tim
     public static void generateMatchReport(Match match, List<Player> homePlayers, List<Player> awayPlayers, String dest) throws FileNotFoundException {
-        // 1. Inisialisasi PDF Writer & Document (Style iText 7)
+        // Inisialisasi writer dan dokumen PDF dengan ukuran halaman A4
         PdfWriter writer = new PdfWriter(dest);
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf, PageSize.A4);
         document.setMargins(20, 20, 20, 20);
 
-        // 2. HEADER
+        // Menambahkan judul laporan di bagian atas dokumen
         Paragraph title = new Paragraph("LAPORAN HASIL PERTANDINGAN")
+                .setTextAlignment(TextAlignment.CENTER)
                 .setFontSize(18)
-                .setBold()
-                .setTextAlignment(TextAlignment.CENTER);
+                .setBold();
         document.add(title);
-        
-        // 3. INFO TURNAMEN
-        String roundName = (match.getRoundNumber() == 1) ? "Final" : (match.getRoundNumber() == 2) ? "Semi Final" : "Round " + match.getRoundNumber();
-        Paragraph info = new Paragraph("Turnamen: " + match.getTournamentName() + "\n" +
-                                       "Babak: " + roundName + "\n" +
-                                       "Waktu: " + match.getMatchDate())
-                .setFontSize(12)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setMarginBottom(10);
-        document.add(info);
 
-        document.add(new Paragraph("----------------------------------------------------------------------------------------------------------------"));
+        // Menambahkan informasi umum pertandingan (Turnamen, Tanggal, Skor Akhir)
+        document.add(new Paragraph("Turnamen: " + match.getTournamentName()));
+        document.add(new Paragraph("Tanggal: " + match.getMatchDate()));
+        document.add(new Paragraph("Skor Akhir: " + match.getHomeTeamName() + " (" + match.getHomeScore() + ") vs (" + match.getAwayScore() + ") " + match.getAwayTeamName())
+                .setBold().setFontSize(14).setMarginBottom(10));
 
-        // 4. SKOR BIG MATCH
-        String scoreText = match.getHomeTeamName() + "  " + match.getHomeScore() + "  -  " + match.getAwayScore() + "  " + match.getAwayTeamName();
-        Paragraph scorePara = new Paragraph(scoreText)
-                .setFontSize(24)
-                .setBold()
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(ColorConstants.BLUE);
-        document.add(scorePara);
-        
-        String winner = (match.getHomeScore() > match.getAwayScore()) ? match.getHomeTeamName() : match.getAwayTeamName();
-        if(match.getHomeScore() == match.getAwayScore()) winner = "SERI";
-        
-        Paragraph winPara = new Paragraph("Pemenang: " + winner)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setMarginBottom(20);
-        document.add(winPara);
-
-        // 5. TABEL STATISTIK
+        // Membuat tabel statistik untuk Tim Home
         document.add(createTeamTable(match.getHomeTeamName(), homePlayers));
-        document.add(new Paragraph("\n")); // Spasi antar tabel
+        document.add(new Paragraph("\n")); // Memberi jarak antar tabel
+
+        // Membuat tabel statistik untuk Tim Away
         document.add(createTeamTable(match.getAwayTeamName(), awayPlayers));
 
-        // 6. FOOTER
-        Paragraph footer = new Paragraph("\nDicetak otomatis oleh Sistem SPORTA")
-                .setItalic()
-                .setFontSize(10)
-                .setTextAlignment(TextAlignment.RIGHT);
-        document.add(footer);
-
+        // Menutup dokumen untuk menyimpan file PDF
         document.close();
+        System.out.println("PDF berhasil dibuat di: " + dest);
     }
 
-    // Helper untuk membuat Tabel Statistik Tim
+    // Helper method untuk membuat tabel statistik pemain berdasarkan tim
     private static Table createTeamTable(String teamName, List<Player> players) {
-        // Membuat tabel dengan lebar kolom proporsional (No, Nama, Poin, Foul)
+        // Mengatur lebar kolom tabel secara proporsional
         Table table = new Table(UnitValue.createPercentArray(new float[]{1, 4, 1, 1}));
         table.setWidth(UnitValue.createPercentValue(100));
         
-        // Header Judul Tim
+        // Membuat header tabel dengan nama tim dan background abu-abu
         Cell headerTeam = new Cell(1, 4)
                 .add(new Paragraph("Statistik: " + teamName))
                 .setBackgroundColor(ColorConstants.LIGHT_GRAY)
@@ -92,19 +65,20 @@ public class PdfCreator {
                 .setBold();
         table.addHeaderCell(headerTeam);
 
-        // Header Kolom
+        // Mengatur judul kolom untuk data statistik
         table.addHeaderCell(new Cell().add(new Paragraph("#")).setBold().setTextAlignment(TextAlignment.CENTER));
         table.addHeaderCell(new Cell().add(new Paragraph("Nama Pemain")).setBold());
         table.addHeaderCell(new Cell().add(new Paragraph("Poin")).setBold().setTextAlignment(TextAlignment.CENTER));
         table.addHeaderCell(new Cell().add(new Paragraph("Foul")).setBold().setTextAlignment(TextAlignment.CENTER));
 
-        // Isi Data
+        // Melakukan iterasi pada list pemain untuk mengisi baris data tabel
         for (Player p : players) {
             table.addCell(new Cell().add(new Paragraph(String.valueOf(p.getJerseyNumber()))).setTextAlignment(TextAlignment.CENTER));
             table.addCell(new Cell().add(new Paragraph(p.getName())));
             table.addCell(new Cell().add(new Paragraph(String.valueOf(p.getMatchPoints()))).setTextAlignment(TextAlignment.CENTER));
             table.addCell(new Cell().add(new Paragraph(String.valueOf(p.getMatchFouls()))).setTextAlignment(TextAlignment.CENTER));
         }
+
         return table;
     }
 }

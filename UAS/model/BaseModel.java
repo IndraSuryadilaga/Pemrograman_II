@@ -1,33 +1,30 @@
 package model;
 
-/**
- * Abstract Class yang menjadi induk semua Model.
- * Menerapkan prinsip Abstraction.
- */
+// Abstract class BaseModel sebagai parent class untuk semua model (Inheritance dan Abstraction)
 public abstract class BaseModel {
-    // Encapsulation: Access modifier protected agar bisa diakses anak-anaknya (subclass)
+    // Field protected agar bisa diakses oleh subclass (Encapsulation)
     protected int id;
 
-    // Constructor
+    // Constructor untuk membuat objek dengan ID dari database
     public BaseModel(int id) {
         this.id = id;
     }
     
-    // Polymorphism (Overloading Constructor) - Untuk objek baru yang belum punya ID
+    // Constructor untuk membuat objek baru tanpa ID (Constructor Overloading - Polymorphism)
     public BaseModel() {
         this.id = 0;
     }
 
-    // Getter & Setter (Encapsulation)
+    // Getter untuk mengakses ID (Encapsulation)
     public int getId() {
         return id;
     }
 
+    // Setter untuk mengubah ID (Encapsulation)
     public void setId(int id) {
         this.id = id;
     }
 
-    // Abstract method (Memaksa semua anak class punya method ini)
-    // Contoh: Untuk keperluan debugging log
+    // Abstract method yang harus diimplementasikan oleh subclass (Abstraction)
     public abstract String toString();
 }

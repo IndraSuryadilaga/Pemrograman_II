@@ -1,9 +1,11 @@
 package model.rules;
 
+// RuleFactory menyediakan method untuk mendapatkan SportStrategy berdasarkan nama olahraga (Factory Pattern)
 public class RuleFactory {
     
+    // Mengembalikan implementasi SportStrategy yang sesuai dengan nama olahraga
     public static SportStrategy getStrategy(String sportName) {
-        if (sportName == null) return new BasketballStrategy(); // Default
+        if (sportName == null) return new BasketballStrategy();
 
         switch (sportName.toLowerCase()) {
             case "basketball":
@@ -14,8 +16,6 @@ public class RuleFactory {
             case "bulutangkis":
                 return new BadmintonStrategy();
                 
-            // Penambahan case baru jika ingin menambahkan rules pertandian lainnya
-            
             default:
                 return new BasketballStrategy();
         }

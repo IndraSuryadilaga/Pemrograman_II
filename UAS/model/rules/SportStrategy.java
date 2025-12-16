@@ -2,16 +2,17 @@ package model.rules;
 
 import java.util.List;
 
+// Interface SportStrategy mendefinisikan kontrak untuk aturan olahraga yang berbeda (Polymorphism dan Abstraction)
 public interface SportStrategy {
-    // Menghitung skor baru (misal: Basket +3, Badminton +1)
+    // Menghitung skor baru berdasarkan poin yang ditambahkan sesuai aturan olahraga
     int calculateNewScore(int currentScore, int pointsToAdd);
 
-    // Mengembalikan opsi poin yang valid untuk UI (misal: Basket [1,2,3], Badminton [1])
+    // Mengembalikan daftar opsi poin yang valid untuk ditampilkan di UI
     List<Integer> getValidPointOptions();
 
-    // Cek apakah jumlah foul sudah batas maksimal (Foul Out)
+    // Mengecek apakah pemain sudah mencapai batas maksimal foul (Foul Out)
     boolean isFoulOut(int totalFouls);
     
-    // Mendapatkan pesan foul (misal: "Foul Out" vs "Red Card")
+    // Mendapatkan pesan foul yang spesifik untuk olahraga
     String getFoulMessage();
 }

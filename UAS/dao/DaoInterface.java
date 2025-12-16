@@ -2,15 +2,16 @@ package dao;
 
 import java.util.List;
 
-/**
- * Interface Generic untuk operasi CRUD standar.
- * Menerapkan konsep Polymorphism (Interface-based).
- * @param <T> Tipe Model (misal: Team, Player)
- */
+// Interface generic untuk operasi CRUD standar menggunakan generics dan polymorphism (Interface-based)
 public interface DaoInterface<T> {
-    List<T> getAll();       // Ambil semua data
-    T get(int id);          // Ambil satu data berdasarkan ID
-    boolean add(T t);       // Tambah data
-    boolean update(T t);    // Edit data
-    boolean delete(int id); // Hapus data
+    // Mengambil semua data dari database
+    List<T> getAll();
+    // Mengambil satu data berdasarkan ID
+    T get(int id);
+    // Menambahkan data baru ke database
+    boolean add(T t);
+    // Mengupdate data yang sudah ada di database
+    boolean update(T t);
+    // Menghapus data dari database berdasarkan ID
+    boolean delete(int id);
 }

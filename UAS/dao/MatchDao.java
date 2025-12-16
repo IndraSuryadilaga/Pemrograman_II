@@ -2,61 +2,73 @@ package dao;
 
 import model.Match;
 import util.DatabaseHelper;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+// DAO untuk mengelola operasi database terkait Match menggunakan PreparedStatement dan try-with-resources
 public class MatchDao {
     
-    // Mengambil Data Match beserta Nama Timnya
-    // Mengambil Data Match beserta Nama Timnya (DAN NAMA TURNAMEN)
+    // Mengambil semua match dalam turnamen beserta nama tim menggunakan LEFT JOIN
     public List<Match> getMatchesByTournament(int tournamentId) {
-        List<Match> list = new ArrayList<>();
+        List<Match> matches = new ArrayList<>();
         
-        // REVISI SQL: Tambahkan JOIN ke tournaments untuk mengambil tour_name
-        String sql = "SELECT m.*, t.name as tour_name, th.name as home_name, ta.name as away_name " +
+        String sql = "SELECT m.*, " +
+                     "t1.name as home_name, t2.name as away_name " +
                      "FROM matches m " +
-                     "JOIN tournaments t ON m.tournament_id = t.id " + // <-- JOIN BARU
-                     "LEFT JOIN teams th ON m.home_team_id = th.id " +
-                     "LEFT JOIN teams ta ON m.away_team_id = ta.id " +
-                     "WHERE m.tournament_id = ? " +
-                     "ORDER BY m.round_number DESC, m.bracket_index ASC";
+                     "LEFT JOIN teams t1 ON m.home_team_id = t1.id " +
+                     "LEFT JOIN teams t2 ON m.away_team_id = t2.id " +
+                     "WHERE m.tournament_id = ?";
 
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, tournamentId);
-            ResultSet rs = stmt.executeQuery();
             
-            while (rs.next()) {
-                // Gunakan Constructor Match TERBARU (yang ada tournamentName & matchDate)
-                Match m = new Match(
-                    rs.getInt("id"),
-                    rs.getInt("tournament_id"),
-                    rs.getString("tour_name"), // <-- Kolom ini sekarang ada
-                    rs.getInt("home_team_id"),
-                    rs.getString("home_name"),
-                    rs.getInt("away_team_id"),
-                    rs.getString("away_name"),
-                    rs.getInt("round_number"),
-                    rs.getInt("bracket_index"),
-                    rs.getBoolean("is_finished"),
-                    rs.getInt("home_score"),
-                    rs.getInt("away_score"),
-                    rs.getString("match_date") // <-- Kolom waktu
-                );
-                list.add(m);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Match m = new Match(
+                        rs.getInt("id"),
+                        rs.getInt("tournament_id"),
+                        rs.getInt("home_team_id"),
+                        rs.getInt("away_team_id"),
+                        rs.getString("home_name"),
+                        rs.getString("away_name"),
+                        rs.getDate("match_date"),
+                        rs.getInt("home_score"),
+                        rs.getInt("away_score"),
+                        rs.getInt("round_number"),
+                        rs.getBoolean("is_finished")
+                    );
+                    
+                    m.setBracketIndex(rs.getInt("bracket_index"));
+
+                    int dbQuarter = rs.getInt("current_quarter");
+                    int dbTime = rs.getInt("remaining_seconds");
+                    
+                    if (dbQuarter < 1) dbQuarter = 1;
+                    
+                    m.setCurrentQuarter(dbQuarter);
+                    m.setRemainingSeconds(dbTime);
+                    
+                    matches.add(m);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return list;
+        return matches;
     }
-    
-    // Update skor akhir pertandingan
+	
+    // Mengupdate skor akhir pertandingan dan menandai match sebagai selesai
     public boolean updateScore(int matchId, int homeScore, int awayScore) {
         String sql = "UPDATE matches SET home_score = ?, away_score = ?, is_finished = 1 WHERE id = ?";
+        
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
@@ -71,25 +83,26 @@ public class MatchDao {
         }
     }
     
-    // === FITUR TRANSACTION LOG (MATCH EVENTS) ===
-
-    // 1. Mencatat Event
+    // Mencatat event dalam pertandingan (score, foul) ke tabel match_events untuk history tracking dan breakdown skor
     public void addMatchEvent(int matchId, int playerId, String eventType, int eventValue, int quarter) {
         String sql = "INSERT INTO match_events (match_id, player_id, event_type, event_value, timestamp, quarter) VALUES (?, ?, ?, ?, NOW(), ?)";
+        
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
             stmt.setInt(1, matchId);
             stmt.setInt(2, playerId);
             stmt.setString(3, eventType);
             stmt.setInt(4, eventValue);
-            stmt.setInt(5, quarter); // <--- Masukkan Quarter
+            stmt.setInt(5, quarter);
+            
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    // 2. Menghitung Jumlah Foul Pemain Tertentu (Aggregation Query)
+    // Menghitung jumlah foul pemain dalam match menggunakan COUNT aggregate function
     public int getPlayerFoulCount(int matchId, int playerId) {
         String sql = "SELECT COUNT(*) FROM match_events WHERE match_id = ? AND player_id = ? AND event_type = 'FOUL'";
         
@@ -99,9 +112,10 @@ public class MatchDao {
             stmt.setInt(1, matchId);
             stmt.setInt(2, playerId);
             
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -109,12 +123,12 @@ public class MatchDao {
         return 0;
     }
     
-    // === ALGORITMA GENERATE BRACKET (FIXED LOGIC) ===
+    // Generate struktur bracket turnamen menggunakan batch operation dan transaction management
     public boolean generateBracket(int tournamentId, List<Integer> teamIds) {
         int teamCount = teamIds.size();
         if (teamCount < 2) return false;
 
-        // Hitung Ukuran Bracket (4, 8, 16...)
+        // Menghitung ukuran bracket (harus pangkat 2: 4, 8, 16, 32...)
         int bracketSize = 1;
         while (bracketSize < teamCount) {
             bracketSize *= 2;
@@ -125,19 +139,12 @@ public class MatchDao {
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
+            // Menonaktifkan auto-commit untuk transaction management
             conn.setAutoCommit(false);
 
-            // 3. GENERATE STRUKTUR BRACKET KOSONG
-            // i = jumlah match di ronde tersebut.
-            // i=1 (Final), i=2 (Semi), i=4 (Quarter)
+            // Generate struktur bracket kosong untuk semua round
             for (int i = 1; i <= bracketSize / 2; i *= 2) {
-                
-                // --- PERBAIKAN DISINI ---
-                // Logika lama: int roundNumber = bracketSize / i / 2; (TERBALIK)
-                // Logika baru: Round 1=Final(1 match), Round 2=Semi(2 match). 
-                // Jadi roundNumber SAMA DENGAN i.
-                int roundNumber = i; 
-                // ------------------------
+                int roundNumber = i;
 
                 for (int matchIdx = 1; matchIdx <= i; matchIdx++) {
                     stmt.setInt(1, tournamentId);
@@ -152,9 +159,8 @@ public class MatchDao {
             }
             stmt.executeBatch();
 
-            // 4. ISI BABAK PERTAMA DENGAN TIM
-            // Round pertama adalah angka terbesar (misal 2 untuk Semi, 4 untuk Quarter)
-            int firstRound = bracketSize / 2; 
+            // Mengisi round pertama dengan tim yang dipilih
+            int firstRound = bracketSize / 2;
             
             String updateSql = "UPDATE matches SET home_team_id = ?, away_team_id = ? " +
                                "WHERE tournament_id = ? AND round_number = ? AND bracket_index = ?";
@@ -191,38 +197,24 @@ public class MatchDao {
         }
     }
     
-    // === ALGORITMA BRACKET ADVANCEMENT (LOGIKA PROMOSI PEMENANG) ===
+    // Memajukan pemenang match ke round berikutnya secara otomatis setelah match selesai
     public void advanceWinnerToNextRound(Match currentMatch) {
-        // 1. Tentukan Siapa Pemenangnya
         int winnerTeamId = (currentMatch.getHomeScore() > currentMatch.getAwayScore()) 
                            ? currentMatch.getHomeTeamId() 
                            : currentMatch.getAwayTeamId();
 
-        System.out.println("--- DEBUG ADVANCE WINNER ---");
-        System.out.println("Match Selesai: Round " + currentMatch.getRoundNumber() + ", Index " + currentMatch.getBracketIndex());
-        System.out.println("Pemenang ID: " + winnerTeamId);
-
-        // 2. Tentukan Tujuan (Next Match)
-        // Logika DB: Round 4 -> 2 -> 1
         int currentRound = currentMatch.getRoundNumber();
         int nextRound = currentRound / 2; 
 
         if (nextRound < 1) {
-            System.out.println("⏹️ Ini adalah Final. Tidak ada next round.");
             return; 
         }
 
-        // Rumus Index: (1,2 -> 1), (3,4 -> 2)
         int nextBracketIndex = (currentMatch.getBracketIndex() + 1) / 2;
 
-        // 3. Tentukan Slot (Home/Away)
-        // Ganjil (1, 3) -> Home, Genap (2, 4) -> Away
         boolean isHomeSlot = (currentMatch.getBracketIndex() % 2 != 0);
         String columnTarget = isHomeSlot ? "home_team_id" : "away_team_id";
 
-        System.out.println("Target Update: Round " + nextRound + ", Index " + nextBracketIndex + ", Slot: " + columnTarget);
-
-        // 4. Update Database
         String sql = "UPDATE matches SET " + columnTarget + " = ? " +
                      "WHERE tournament_id = ? AND round_number = ? AND bracket_index = ?";
 
@@ -235,23 +227,19 @@ public class MatchDao {
             stmt.setInt(4, nextBracketIndex);
             
             int updated = stmt.executeUpdate();
-            if (updated > 0) {
-                System.out.println("✅ SUKSES! Database berhasil diupdate.");
-            } else {
-                System.out.println("❌ GAGAL UPDATE! Baris target tidak ditemukan di Database.");
-                System.out.println("SARAN: Buat Turnamen BARU agar struktur bracket digenerate ulang dengan benar.");
+            if (updated == 0) {
+                System.err.println("Warning: Failed to advance winner. Check bracket structure.");
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.out.println("----------------------------");
     }
     
-    // === FITUR HISTORY ===
+    // Mengambil semua match yang sudah selesai menggunakan multiple JOIN untuk ditampilkan di History
     public List<Match> getAllFinishedMatches() {
         List<Match> list = new ArrayList<>();
-        // Join ke Tournaments untuk dapat nama, dan ambil match_date
+        
         String sql = "SELECT m.*, t.name as tour_name, th.name as home_name, ta.name as away_name " +
                      "FROM matches m " +
                      "JOIN tournaments t ON m.tournament_id = t.id " +
@@ -288,12 +276,10 @@ public class MatchDao {
         return list;
     }
 
-    // 2. BARU: Ambil Statistik Spesifik Pemain di Match tertentu
-    // Mengembalikan object Player yang sudah diisi poin & foul match tersebut
+    // Mengambil statistik pemain (total poin dan foul) menggunakan SUM dan COUNT dengan CASE expression
     public List<model.Player> getPlayerStatsByMatch(int matchId, int teamId) {
         List<model.Player> list = new ArrayList<>();
         
-        // Query agak kompleks: Kita ambil pemain, lalu hitung sum event SCORE dan count event FOUL
         String sql = "SELECT p.id, p.name, p.jersey_number, p.position, " +
                      "COALESCE(SUM(CASE WHEN me.event_type = 'SCORE' THEN me.event_value ELSE 0 END), 0) as total_points, " +
                      "COUNT(CASE WHEN me.event_type = 'FOUL' THEN 1 END) as total_fouls " +
@@ -307,21 +293,21 @@ public class MatchDao {
             
             stmt.setInt(1, matchId);
             stmt.setInt(2, teamId);
-            ResultSet rs = stmt.executeQuery();
             
-            while (rs.next()) {
-                model.Player p = new model.Player(
-                    rs.getInt("id"),
-                    teamId,
-                    rs.getString("name"),
-                    rs.getInt("jersey_number"),
-                    rs.getString("position")
-                );
-                // Isi statistik transien
-                p.setMatchPoints(rs.getInt("total_points"));
-                p.setMatchFouls(rs.getInt("total_fouls"));
-                
-                list.add(p);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    model.Player p = new model.Player(
+                        rs.getInt("id"),
+                        teamId,
+                        rs.getString("name"),
+                        rs.getInt("jersey_number"),
+                        rs.getString("position")
+                    );
+                    p.setMatchPoints(rs.getInt("total_points"));
+                    p.setMatchFouls(rs.getInt("total_fouls"));
+                    
+                    list.add(p);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -329,11 +315,13 @@ public class MatchDao {
         return list;
     }
     
- // 1. UPDATE: Tambahkan method untuk Update Waktu & Quarter saja (biar ringan)
+    // Mengupdate state waktu match (quarter dan remaining seconds) untuk fitur Auto-Save
     public void updateMatchState(int matchId, int quarter, int remainingSeconds) {
         String sql = "UPDATE matches SET current_quarter = ?, remaining_seconds = ? WHERE id = ?";
+        
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
             stmt.setInt(1, quarter);
             stmt.setInt(2, remainingSeconds);
             stmt.setInt(3, matchId);
@@ -343,36 +331,35 @@ public class MatchDao {
         }
     }
     
-    public java.util.Map<Integer, java.util.Map<Integer, Integer>> getQuarterScores(int matchId) {
-        java.util.Map<Integer, java.util.Map<Integer, Integer>> result = new java.util.HashMap<>();
+    // Mengambil rekap skor per quarter per tim menggunakan GROUP BY untuk breakdown skor di dashboard
+    public Map<Integer, Map<Integer, Integer>> getQuarterScores(int matchId) {
+        Map<Integer, Map<Integer, Integer>> result = new HashMap<>();
         
-        String sql = "SELECT team_id, quarter, SUM(event_value) as quarter_score " +
-                     "FROM match_events " +
-                     "WHERE match_id = ? AND event_type = 'SCORE' " +
-                     "GROUP BY team_id, quarter " +
-                     "ORDER BY quarter ASC";
+        String sql = "SELECT p.team_id, me.quarter, SUM(me.event_value) as total " +
+                     "FROM match_events me " +
+                     "JOIN players p ON me.player_id = p.id " +
+                     "WHERE me.match_id = ? AND me.event_type = 'SCORE' " +
+                     "GROUP BY p.team_id, me.quarter " +
+                     "ORDER BY me.quarter ASC";
 
-        try (java.sql.Connection conn = util.DatabaseHelper.getConnection();
-             java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, matchId);
-            java.sql.ResultSet rs = stmt.executeQuery();
             
-            while (rs.next()) {
-                int teamId = rs.getInt("team_id");
-                int quarter = rs.getInt("quarter");
-                int score = rs.getInt("quarter_score");
-
-                // Ambil Map untuk team ini, jika belum ada buat baru
-                result.putIfAbsent(teamId, new java.util.HashMap<>());
-                
-                // Masukkan skor quarter
-                result.get(teamId).put(quarter, score);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while(rs.next()) {
+                    int tId = rs.getInt("team_id");
+                    int q = rs.getInt("quarter");
+                    int val = rs.getInt("total");
+                    
+                    result.putIfAbsent(tId, new HashMap<>());
+                    result.get(tId).put(q, val);
+                }
             }
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
+        } catch(SQLException e) { 
+            e.printStackTrace(); 
         }
         return result;
     }
-    
 }

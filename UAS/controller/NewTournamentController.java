@@ -3,6 +3,7 @@ package controller;
 import dao.MatchDao;
 import dao.TeamDao;
 import model.Team;
+import util.AlertHelper;
 import util.DatabaseHelper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,125 +13,124 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// Controller mengatur logika pembuatan turnamen baru dan generate bracket menggunakan transaction management
 public class NewTournamentController {
 
+    // Komponen UI yang di-bind dari NewTournamentView.fxml
     @FXML private TextField tfTournamentName;
     @FXML private ComboBox<String> cbSport;
     @FXML private ListView<Team> listTeams;
     @FXML private Label lblSelectionCount;
     @FXML private Button btnGenerate;
 
+    // Controller menggunakan DAO untuk mengakses database
     private TeamDao teamDao;
     private MatchDao matchDao;
 
+    // Inisialisasi komponen DAO, setup ComboBox sport, load tim ke ListView, dan setup multi-selection dengan listener
     @FXML
     public void initialize() {
         teamDao = new TeamDao();
         matchDao = new MatchDao();
 
-        // 1. Setup ComboBox Sport
+        // Setup ComboBox dengan opsi olahraga dan auto-select yang pertama
         cbSport.setItems(FXCollections.observableArrayList("Basketball", "Badminton"));
         cbSport.getSelectionModel().selectFirst();
 
-        // 2. Load Semua Tim ke ListView
+        // Load semua tim dari database ke ListView
         List<Team> teams = teamDao.getAll();
         listTeams.setItems(FXCollections.observableArrayList(teams));
         
-        // 3. Aktifkan Mode Multi-Selection (Agar bisa pilih banyak tim)
+        // Aktifkan mode multi-selection agar bisa memilih banyak tim sekaligus
         listTeams.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         
-        // Listener: Hitung berapa tim yang dipilih real-time
+        // Listener untuk menghitung jumlah tim yang dipilih secara real-time menggunakan lambda
         listTeams.getSelectionModel().getSelectedItems().addListener((javafx.collections.ListChangeListener.Change<? extends Team> c) -> {
             int count = listTeams.getSelectionModel().getSelectedItems().size();
             lblSelectionCount.setText(count + " Tim dipilih");
         });
     }
 
+    // Menangani proses generate turnamen baru dan bracket pertandingan dengan validasi dan transaction management
     @FXML
     private void handleGenerate() {
-        // A. Validasi Input
+        // Validasi input: nama turnamen dan olahraga harus diisi
         String name = tfTournamentName.getText();
         String sport = cbSport.getValue();
         List<Team> selectedTeams = listTeams.getSelectionModel().getSelectedItems();
 
         if (name.isEmpty() || sport == null) {
-            showAlert("Error", "Nama turnamen dan olahraga harus diisi!");
+        	AlertHelper.showWarning("Error", "Nama turnamen dan olahraga harus diisi!");
             return;
         }
 
-        // Syarat Bracket: Minimal 4 tim (Semifinal)
+        // Validasi jumlah tim: minimal 4 tim untuk bracket semifinal
         if (selectedTeams.size() < 4) {
-            showAlert("Error", "Pilih minimal 4 tim untuk membuat bracket!");
+        	AlertHelper.showWarning("Error", "Pilih minimal 4 tim untuk membuat bracket!");
             return;
         }
         
+        // Validasi jumlah tim harus genap untuk bracket yang valid
         if (selectedTeams.size() % 2 != 0) {
-        	showAlert("Warning", "Jumlah tim ganjil...");
+        	AlertHelper.showWarning("Warning", "Jumlah tim ganjil...");
         	return;
         }
 
-        // B. PROSES DATABASE TRANSAKSI
+        // Proses database transaction: insert turnamen dan generate bracket
         try {
-            // 1. Simpan Header Turnamen Baru
+            // Simpan header turnamen baru dan dapatkan ID yang di-generate
             int newTournamentId = createTournamentHeader(name, sport);
             
             if (newTournamentId != -1) {
-                // 2. Ambil ID dari tim yang dipilih
+                // Ambil ID dari tim yang dipilih untuk generate bracket
                 List<Integer> teamIds = new ArrayList<>();
                 for (Team t : selectedTeams) {
                     teamIds.add(t.getId());
                 }
 
-                // 3. Generate Bracket Pertandingan
+                // Generate bracket pertandingan menggunakan algoritma bracket generation
                 boolean success = matchDao.generateBracket(newTournamentId, teamIds);
                 
                 if (success) {
-                    showAlert("Sukses", "Turnamen & Bracket Berhasil Dibuat!");
-                    // TODO: Arahkan user kembali ke Dashboard (Nanti diatur di MainController)
+                	AlertHelper.showWarning("Sukses", "Turnamen & Bracket Berhasil Dibuat!");
                 } else {
-                    showAlert("Error", "Gagal meng-generate jadwal pertandingan.");
+                	AlertHelper.showWarning("Error", "Gagal meng-generate jadwal pertandingan.");
                 }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Error", "Terjadi kesalahan database: " + e.getMessage());
+            AlertHelper.showWarning("Error", "Terjadi kesalahan database: " + e.getMessage());
         }
     }
 
-    // Helper: Insert Tournament dan return ID-nya (Auto Increment)
+    // Insert turnamen baru ke database dan mengembalikan ID yang di-generate menggunakan RETURN_GENERATED_KEYS
     private int createTournamentHeader(String name, String sportName) {
-        // Map String Sport ke ID (Simple logic)
+        // Mapping nama olahraga ke sportId (1=Basketball, 2=Badminton)
         int sportId = sportName.equals("Basketball") ? 1 : 2; 
 
         String sql = "INSERT INTO tournaments (sport_id, name, start_date, status) VALUES (?, ?, NOW(), 'ONGOING')";
         
+        // Menggunakan RETURN_GENERATED_KEYS untuk mendapatkan auto-increment ID
         try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) { // PENTING: RETURN_GENERATED_KEYS
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setInt(1, sportId);
             stmt.setString(2, name);
             
             int affectedRows = stmt.executeUpdate();
 
+            // Ambil generated keys untuk mendapatkan ID turnamen yang baru dibuat
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
-                        return generatedKeys.getInt(1); // Mengembalikan ID Turnamen Baru (misal: 2, 3, dst)
+                        return generatedKeys.getInt(1);
                     }
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1; // Gagal
-    }
-
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+        return -1;
     }
 }

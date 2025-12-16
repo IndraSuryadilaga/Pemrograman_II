@@ -4,34 +4,37 @@ import dao.PlayerDao;
 import dao.TeamDao;
 import model.Player;
 import model.Team;
+import util.AlertHelper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+// Controller mengatur logika CRUD untuk Team dan Player menggunakan PropertyValueFactory dan event listener
 public class TeamController {
 
-    // --- UI Components Team ---
+    // Komponen UI tabel dan form untuk Team yang di-bind dari TeamView.fxml
     @FXML private TableView<Team> tableTeams;
-    @FXML private TableColumn<Team, Integer> colTeamId;   // <--- TAMBAHAN BARU
+    @FXML private TableColumn<Team, Integer> colTeamId;
     @FXML private TableColumn<Team, String> colTeamName;
     @FXML private TextField tfTeamName;
 
-    // --- UI Components Player ---
+    // Komponen UI tabel dan form untuk Player yang di-bind dari TeamView.fxml
     @FXML private Label lblSelectedTeam;
     @FXML private TableView<Player> tablePlayers;
-    @FXML private TableColumn<Player, Integer> colPlayerId; // <--- TAMBAHAN BARU
+    @FXML private TableColumn<Player, Integer> colPlayerId;
     @FXML private TableColumn<Player, String> colPlayerName;
     @FXML private TableColumn<Player, Integer> colPlayerNo;
     @FXML private TableColumn<Player, String> colPlayerPos;
     @FXML private TextField tfPlayerName, tfPlayerNo, tfPlayerPos;
 
-    // --- DAO & Data ---
+    // Controller menggunakan DAO untuk mengakses database dan state untuk selection
     private TeamDao teamDao;
     private PlayerDao playerDao;
     private Team selectedTeam;
     private Player selectedPlayer;
 
+    // Inisialisasi komponen DAO, setup tabel, load data, dan disable form player
     @FXML
     public void initialize() {
         teamDao = new TeamDao();
@@ -43,18 +46,20 @@ public class TeamController {
         setPlayerFormState(false);
     }
 
+    // Setup cell value factory untuk semua kolom tabel dan event listener untuk selection
     private void setupTables() {
-        // --- Setup Kolom Tabel Team ---
-        colTeamId.setCellValueFactory(new PropertyValueFactory<>("id"));     // <--- Mapping ID
-        colTeamName.setCellValueFactory(new PropertyValueFactory<>("name")); // Mapping Nama
+        // Setup kolom tabel Team menggunakan PropertyValueFactory untuk binding ke property Model
+        colTeamId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colTeamName.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        // --- Setup Kolom Tabel Player ---
-        colPlayerId.setCellValueFactory(new PropertyValueFactory<>("id"));           // <--- Mapping ID
-        colPlayerName.setCellValueFactory(new PropertyValueFactory<>("name"));       // Mapping Nama
-        colPlayerNo.setCellValueFactory(new PropertyValueFactory<>("jerseyNumber")); // Mapping No Punggung
-        colPlayerPos.setCellValueFactory(new PropertyValueFactory<>("position"));    // Mapping Posisi
+        // Setup kolom tabel Player menggunakan PropertyValueFactory untuk binding ke property Model
+        colPlayerId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colPlayerName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colPlayerNo.setCellValueFactory(new PropertyValueFactory<>("jerseyNumber"));
+        colPlayerPos.setCellValueFactory(new PropertyValueFactory<>("position"));
 
-        // Listener Seleksi Tabel Tim
+        // Event listener untuk selection change di tabel Team menggunakan lambda
+        // Saat user memilih team, load pemain team tersebut dan enable form player
         tableTeams.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 selectedTeam = newVal;
@@ -66,7 +71,8 @@ public class TeamController {
             }
         });
 
-        // Listener Seleksi Tabel Pemain
+        // Event listener untuk selection change di tabel Player menggunakan lambda
+        // Saat user memilih player, isi form dengan data player tersebut
         tablePlayers.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 selectedPlayer = newVal;
@@ -77,14 +83,17 @@ public class TeamController {
         });
     }
 
+    // Memuat semua team dari database ke tabel menggunakan ObservableList
     private void loadTeams() {
         tableTeams.setItems(FXCollections.observableArrayList(teamDao.getAll()));
     }
 
+    // Memuat pemain dari team tertentu ke tabel menggunakan ObservableList
     private void loadPlayers(int teamId) {
         tablePlayers.setItems(FXCollections.observableArrayList(playerDao.getPlayersByTeam(teamId)));
     }
 
+    // Mengatur state form player (enable/disable) berdasarkan apakah team sudah dipilih
     private void setPlayerFormState(boolean active) {
         tablePlayers.setDisable(!active);
         tfPlayerName.setDisable(!active);
@@ -92,23 +101,24 @@ public class TeamController {
         tfPlayerPos.setDisable(!active);
     }
 
-    // === CRUD TIM ===
+    // CRUD Operations untuk Team
     
+    // Menambahkan team baru ke database
     @FXML
     private void addTeam() {
         String name = tfTeamName.getText();
         if (name.isEmpty()) return;
 
-        // Constructor: (Nama, LogoPath=null)
         Team t = new Team(name, null); 
         
         if (teamDao.add(t)) {
             loadTeams();
             clearTeamForm();
-            showAlert("Info", "Tim berhasil ditambahkan!");
+            AlertHelper.showWarning("Info", "Tim berhasil ditambahkan!");
         }
     }
 
+    // Mengupdate team yang dipilih di database
     @FXML
     private void updateTeam() {
         if (selectedTeam == null) return;
@@ -120,6 +130,7 @@ public class TeamController {
         }
     }
 
+    // Menghapus team yang dipilih dari database
     @FXML
     private void deleteTeam() {
         if (selectedTeam == null) return;
@@ -132,6 +143,7 @@ public class TeamController {
         }
     }
 
+    // Reset form team dan clear selection
     @FXML
     private void clearTeamForm() {
         tfTeamName.clear();
@@ -139,8 +151,9 @@ public class TeamController {
         tableTeams.getSelectionModel().clearSelection();
     }
 
-    // === CRUD PEMAIN ===
+    // CRUD Operations untuk Player
 
+    // Menambahkan player baru ke team yang dipilih dengan validasi input
     @FXML
     private void addPlayer() {
         if (selectedTeam == null) return;
@@ -156,10 +169,11 @@ public class TeamController {
                 clearPlayerForm();
             }
         } catch (NumberFormatException e) {
-            showAlert("Error", "Nomor Punggung harus angka!");
+        	AlertHelper.showWarning("Error", "Nomor Punggung harus angka!");
         }
     }
 
+    // Mengupdate player yang dipilih di database dengan validasi input
     @FXML
     private void updatePlayer() {
         if (selectedPlayer == null) return;
@@ -174,10 +188,11 @@ public class TeamController {
                 clearPlayerForm();
             }
         } catch (NumberFormatException e) {
-            showAlert("Error", "Nomor Punggung harus angka!");
+        	AlertHelper.showWarning("Error", "Nomor Punggung harus angka!");
         }
     }
 
+    // Menghapus player yang dipilih dari database
     @FXML
     private void deletePlayer() {
         if (selectedPlayer == null) return;
@@ -188,6 +203,7 @@ public class TeamController {
         }
     }
 
+    // Reset form player dan clear selection
     @FXML
     private void clearPlayerForm() {
         tfPlayerName.clear();
@@ -195,13 +211,5 @@ public class TeamController {
         tfPlayerPos.clear();
         selectedPlayer = null;
         tablePlayers.getSelectionModel().clearSelection();
-    }
-
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
     }
 }
