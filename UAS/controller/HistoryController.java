@@ -13,9 +13,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import java.io.File;
 import java.util.List;
-
-import util.AlertHelper;
-import util.PdfCreator;
+import helper.AlertHelper;
+import helper.PdfCreator;
 
 // Controller mengatur logika tampilan History dan menghubungkan View dengan Model melalui DAO
 public class HistoryController {

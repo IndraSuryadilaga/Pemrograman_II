@@ -1,7 +1,8 @@
 package dao;
 
 import model.Match;
-import util.DatabaseHelper;
+import model.Player;
+import helper.DatabaseHelper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -277,8 +278,8 @@ public class MatchDao {
     }
 
     // Mengambil statistik pemain (total poin dan foul) menggunakan SUM dan COUNT dengan CASE expression
-    public List<model.Player> getPlayerStatsByMatch(int matchId, int teamId) {
-        List<model.Player> list = new ArrayList<>();
+    public List<Player> getPlayerStatsByMatch(int matchId, int teamId) {
+        List<Player> list = new ArrayList<>();
         
         String sql = "SELECT p.id, p.name, p.jersey_number, p.position, " +
                      "COALESCE(SUM(CASE WHEN me.event_type = 'SCORE' THEN me.event_value ELSE 0 END), 0) as total_points, " +
@@ -296,7 +297,7 @@ public class MatchDao {
             
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    model.Player p = new model.Player(
+                    Player p = new Player(
                         rs.getInt("id"),
                         teamId,
                         rs.getString("name"),

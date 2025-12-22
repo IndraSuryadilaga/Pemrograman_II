@@ -1,4 +1,4 @@
-package util;
+package helper;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;

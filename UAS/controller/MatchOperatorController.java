@@ -5,11 +5,11 @@ import dao.PlayerDao;
 import model.Match;
 import model.Player;
 import model.rules.SportStrategy;
-import util.AlertHelper;
+import helper.AlertHelper;
+import model.rules.RuleFactory;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
@@ -63,7 +63,7 @@ public class MatchOperatorController {
     // Mengatur data match dan menginisialisasi UI dengan menggunakan RuleFactory untuk mendapatkan strategi olahraga
     public void setMatchData(Match match, String sportName) {
         this.currentMatch = match;
-        this.gameRules = model.rules.RuleFactory.getStrategy(sportName);
+        this.gameRules = RuleFactory.getStrategy(sportName);
 
         lblHomeName.setText(match.getHomeTeamName());
         lblAwayName.setText(match.getAwayTeamName());
@@ -305,7 +305,7 @@ public class MatchOperatorController {
                                       currentMatch.getRemainingSeconds());
 
             // Navigasi kembali ke dashboard menggunakan Singleton MainController
-            controller.MainController.getInstance().showDashboard(); 
+            MainController.getInstance().showDashboard(); 
         } catch (Exception e) { e.printStackTrace(); }
     }
     

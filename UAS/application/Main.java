@@ -5,12 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import dao.MatchDao;
-import dao.TeamDao;
-import model.Match;
-import model.Team;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main extends Application {
     
@@ -35,7 +29,7 @@ public class Main extends Application {
     }
     
     public static void main(String[] args) {
-        launch(args);
+    	launch(args);
     }
     
 }

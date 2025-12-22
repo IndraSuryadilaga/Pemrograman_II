@@ -1,7 +1,7 @@
 package dao;
 
 import model.Tournament;
-import util.DatabaseHelper;
+import helper.DatabaseHelper;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
