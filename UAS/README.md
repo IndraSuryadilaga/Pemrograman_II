@@ -2,9 +2,6 @@
 
 **SportaApp** adalah aplikasi desktop berbasis **JavaFX** yang dirancang untuk membantu penyelenggara turnamen olahraga (Basket & Badminton) dalam mengelola pertandingan, mulai dari pendaftaran tim, pembuatan bagan pertandingan (bracket), hingga pencatatan skor secara real-time.
 
-![SportaApp Banner](https://via.placeholder.com/800x200?text=SportaApp+Dashboard+Preview)
-*(Ganti link di atas dengan screenshot aplikasi Anda nanti)*
-
 ## 🚀 Fitur Utama
 
 * **Multi-Cabang Olahraga:** Mendukung aturan dan sistem skor untuk **Bola Basket** 🏀 dan **Bulutangkis** 🏸.
