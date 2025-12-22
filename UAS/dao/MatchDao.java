@@ -86,7 +86,7 @@ public class MatchDao {
     
     // Mencatat event dalam pertandingan (score, foul) ke tabel match_events untuk history tracking dan breakdown skor
     public void addMatchEvent(int matchId, int playerId, String eventType, int eventValue, int quarter) {
-        String sql = "INSERT INTO match_events (match_id, player_id, event_type, event_value, timestamp, quarter) VALUES (?, ?, ?, ?, NOW(), ?)";
+    	String sql = "INSERT INTO match_events (match_id, player_id, event_type, event_value, timestamp, quarter) VALUES (?, ?, ?, ?, datetime('now', 'localtime'), ?)";
         
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -135,7 +135,8 @@ public class MatchDao {
             bracketSize *= 2;
         }
 
-        String sql = "INSERT INTO matches (tournament_id, round_number, bracket_index, home_team_id, away_team_id, match_date) VALUES (?, ?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO matches (tournament_id, round_number, bracket_index, home_team_id, away_team_id, match_date) " +
+                "VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'))";
 
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

@@ -108,7 +108,8 @@ public class NewTournamentController {
         // Mapping nama olahraga ke sportId (1=Basketball, 2=Badminton)
         int sportId = sportName.equals("Basketball") ? 1 : 2; 
 
-        String sql = "INSERT INTO tournaments (sport_id, name, start_date, status) VALUES (?, ?, NOW(), 'ONGOING')";
+     // Gunakan datetime('now', 'localtime') untuk SQLite
+        String sql = "INSERT INTO tournaments (sport_id, name, start_date, status) VALUES (?, ?, datetime('now', 'localtime'), 'ONGOING')";
         
         // Menggunakan RETURN_GENERATED_KEYS untuk mendapatkan auto-increment ID
         try (Connection conn = DatabaseHelper.getConnection();

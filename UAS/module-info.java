@@ -11,6 +11,7 @@ module SportaApp {
     requires forms;
     requires org.xerial.sqlitejdbc;
     requires org.slf4j;
+    requires javafx.media;
 
     opens application to javafx.graphics, javafx.fxml;
     opens model to javafx.base;

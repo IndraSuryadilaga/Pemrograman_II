@@ -16,6 +16,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import java.util.List;
+import helper.SoundHelper;
 
 // Controller mengatur logika operasi match menggunakan SportStrategy (Polymorphism) dengan fitur Auto-Save, Breakdown Skor, Lock Button, dan Advance Winner
 public class MatchOperatorController {
@@ -58,6 +59,7 @@ public class MatchOperatorController {
         matchDao = new MatchDao();
         timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> updateTimer()));
         timeline.setCycleCount(Timeline.INDEFINITE);
+        
     }
 
     // Mengatur data match dan menginisialisasi UI dengan menggunakan RuleFactory untuk mendapatkan strategi olahraga
@@ -131,6 +133,10 @@ public class MatchOperatorController {
             // Waktu game: hitung mundur dari remaining seconds
             int timeLeft = currentMatch.getRemainingSeconds();
             
+            if (timeLeft == 10) {
+                SoundHelper.playBuzzer();
+                lblTimer.setStyle("-fx-text-fill: red; -fx-font-size: 48px; -fx-font-weight: bold;");
+            }
             if (timeLeft > 0) {
                 currentMatch.setRemainingSeconds(timeLeft - 1);
                 updateClockDisplay();
@@ -221,10 +227,9 @@ public class MatchOperatorController {
     // Memproses penambahan skor menggunakan gameRules.calculateNewScore() dan mencatat event dengan quarter untuk breakdown skor
     private void processScore(int pointsInput) {
         if (selectedPlayer == null) return;
-        java.awt.Toolkit.getDefaultToolkit().beep(); 
+        SoundHelper.playScore();
 
         int currentScore = isHomeTeamAction ? currentMatch.getHomeScore() : currentMatch.getAwayScore();
-        // calculateNewScore() akan berbeda implementasinya tergantung olahraga (Polymorphism)
         int newScore = gameRules.calculateNewScore(currentScore, pointsInput);
         int actualPointsAdded = newScore - currentScore;
         
@@ -278,7 +283,7 @@ public class MatchOperatorController {
     @FXML
     private void handleDebugSkip() {
         if (!isBreakTime && !currentMatch.isFinished()) {
-            currentMatch.setRemainingSeconds(5);
+            currentMatch.setRemainingSeconds(13);
             updateClockDisplay();
             
             // Auto start timer jika belum berjalan
