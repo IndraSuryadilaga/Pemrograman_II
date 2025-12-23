@@ -2,20 +2,19 @@ package controller;
 
 import dao.MatchDao;
 import dao.TeamDao;
+import dao.TournamentDao;
 import model.Team;
 import helper.AlertHelper;
-import helper.DatabaseHelper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 // Controller mengatur logika pembuatan turnamen baru dan generate bracket menggunakan transaction management
 public class NewTournamentController {
 
-    // Komponen UI yang di-bind dari NewTournamentView.fxml
+    // Komponen UI yang dari NewTournamentView.fxml
     @FXML private TextField tfTournamentName;
     @FXML private ComboBox<String> cbSport;
     @FXML private ListView<Team> listTeams;
@@ -25,12 +24,14 @@ public class NewTournamentController {
     // Controller menggunakan DAO untuk mengakses database
     private TeamDao teamDao;
     private MatchDao matchDao;
+    private TournamentDao tournamentDao;
 
     // Inisialisasi komponen DAO, setup ComboBox sport, load tim ke ListView, dan setup multi-selection dengan listener
     @FXML
     public void initialize() {
         teamDao = new TeamDao();
         matchDao = new MatchDao();
+        tournamentDao = new TournamentDao();
 
         // Setup ComboBox dengan opsi olahraga dan auto-select yang pertama
         cbSport.setItems(FXCollections.observableArrayList("Basketball", "Badminton"));
@@ -77,8 +78,11 @@ public class NewTournamentController {
 
         // Proses database transaction: insert turnamen dan generate bracket
         try {
+        	// Mapping nama olahraga ke sportId
+            int sportId = sport.equals("Basketball") ? 1 : 2;
+            
             // Simpan header turnamen baru dan dapatkan ID yang di-generate
-            int newTournamentId = createTournamentHeader(name, sport);
+            int newTournamentId = tournamentDao.createTournament(name, sportId);
             
             if (newTournamentId != -1) {
                 // Ambil ID dari tim yang dipilih untuk generate bracket
@@ -101,36 +105,5 @@ public class NewTournamentController {
             e.printStackTrace();
             AlertHelper.showWarning("Error", "Terjadi kesalahan database: " + e.getMessage());
         }
-    }
-
-    // Insert turnamen baru ke database dan mengembalikan ID yang di-generate menggunakan RETURN_GENERATED_KEYS
-    private int createTournamentHeader(String name, String sportName) {
-        // Mapping nama olahraga ke sportId (1=Basketball, 2=Badminton)
-        int sportId = sportName.equals("Basketball") ? 1 : 2; 
-
-     // Gunakan datetime('now', 'localtime') untuk SQLite
-        String sql = "INSERT INTO tournaments (sport_id, name, start_date, status) VALUES (?, ?, datetime('now', 'localtime'), 'ONGOING')";
-        
-        // Menggunakan RETURN_GENERATED_KEYS untuk mendapatkan auto-increment ID
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            stmt.setInt(1, sportId);
-            stmt.setString(2, name);
-            
-            int affectedRows = stmt.executeUpdate();
-
-            // Ambil generated keys untuk mendapatkan ID turnamen yang baru dibuat
-            if (affectedRows > 0) {
-                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        return generatedKeys.getInt(1);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
     }
 }

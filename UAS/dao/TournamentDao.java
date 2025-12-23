@@ -84,14 +84,39 @@ public class TournamentDao implements DaoInterface<Tournament> {
             return false;
         }
     }
+    
+    // Membuat turnamen baru dan mengembalikan ID-nya
+    public int createTournament(String name, int sportId) {
+        String sql = "INSERT INTO tournaments (sport_id, name, start_date, status) VALUES (?, ?, datetime('now', 'localtime'), 'ONGOING')";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            stmt.setInt(1, sportId);
+            stmt.setString(2, name);
+            
+            int affectedRows = stmt.executeUpdate();
 
-    // Update tournament (implementasi kosong, belum digunakan)
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    // Update tournament
     @Override
     public boolean update(Tournament t) {
         return false;
     }
 
-    // Delete tournament (implementasi kosong, belum digunakan)
+    // Delete tournament
     @Override
     public boolean delete(int id) {
         return false;

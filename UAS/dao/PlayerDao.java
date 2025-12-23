@@ -10,7 +10,7 @@ import java.util.List;
 import helper.DatabaseHelper;
 
 // DAO untuk mengelola operasi database terkait Player menggunakan PreparedStatement dan try-with-resources
-public class PlayerDao {
+public class PlayerDao implements DaoInterface<Player> {
 	// Mengambil semua player dari team tertentu menggunakan PreparedStatement
 	public List<Player> getPlayersByTeam(int teamId) {
         List<Player> list = new ArrayList<>();
@@ -39,8 +39,57 @@ public class PlayerDao {
         return list;
     }
 	
+	@Override
+    public List<Player> getAll() {
+        List<Player> list = new ArrayList<>();
+        String sql = "SELECT * FROM players";	
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Player p = new Player(
+                    rs.getInt("id"),
+                    rs.getInt("team_id"),
+                    rs.getString("name"),
+                    rs.getInt("jersey_number"),
+                    rs.getString("position")
+                );
+                list.add(p);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Player get(int id) {
+        String sql = "SELECT * FROM players WHERE id = ?";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Player(
+                        rs.getInt("id"),
+                        rs.getInt("team_id"),
+                        rs.getString("name"),
+                        rs.getInt("jersey_number"),
+                        rs.getString("position")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+	
 	// Menambahkan player baru ke database
-	public boolean addPlayer(Player player) {
+	public boolean add(Player player) {
         String sql = "INSERT INTO players (team_id, name, jersey_number, position) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -56,7 +105,7 @@ public class PlayerDao {
     }
 
     // Mengupdate data player di database
-    public boolean updatePlayer(Player player) {
+    public boolean update(Player player) {
         String sql = "UPDATE players SET name = ?, jersey_number = ?, position = ? WHERE id = ?";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -72,7 +121,7 @@ public class PlayerDao {
     }
 
     // Menghapus player dari database berdasarkan ID
-    public boolean deletePlayer(int id) {
+    public boolean delete(int id) {
         String sql = "DELETE FROM players WHERE id = ?";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

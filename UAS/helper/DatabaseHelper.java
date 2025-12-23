@@ -6,8 +6,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DatabaseHelper {
-    // PENTING: Ganti nama file database ke versi baru (misal V5) 
-    // agar database dibuat ulang dengan struktur tabel yang benar.
     private static final String URL = "jdbc:sqlite:sportaV5.db"; 
     
     public static Connection getConnection() {

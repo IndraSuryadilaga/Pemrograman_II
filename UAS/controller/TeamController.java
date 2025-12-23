@@ -164,7 +164,7 @@ public class TeamController {
             String pos = tfPlayerPos.getText();
 
             Player p = new Player(selectedTeam.getId(), name, number, pos);
-            if (playerDao.addPlayer(p)) {
+            if (playerDao.add(p)) {
                 loadPlayers(selectedTeam.getId());
                 clearPlayerForm();
             }
@@ -183,7 +183,7 @@ public class TeamController {
             selectedPlayer.setJerseyNumber(Integer.parseInt(tfPlayerNo.getText()));
             selectedPlayer.setPosition(tfPlayerPos.getText());
 
-            if (playerDao.updatePlayer(selectedPlayer)) {
+            if (playerDao.update(selectedPlayer)) {
                 loadPlayers(selectedTeam.getId());
                 clearPlayerForm();
             }
@@ -197,7 +197,7 @@ public class TeamController {
     private void deletePlayer() {
         if (selectedPlayer == null) return;
 
-        if (playerDao.deletePlayer(selectedPlayer.getId())) {
+        if (playerDao.delete(selectedPlayer.getId())) {
             loadPlayers(selectedTeam.getId());
             clearPlayerForm();
         }

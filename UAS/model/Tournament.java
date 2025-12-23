@@ -32,6 +32,7 @@ public class Tournament extends BaseModel {
     public String toString() {
         return name + " (" + status + ")";
     }
+    
     public int getSportId() { return sportId; }
     public void setSportId(int sportId) { this.sportId = sportId; }
 

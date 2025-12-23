@@ -9,11 +9,6 @@ public class Player extends BaseModel {
     private String name;
     private String position;
 
-    // Constructor default untuk membuat Player baru
-    public Player() {
-        super(0);
-    }
-
     // Constructor untuk membuat Player dari data database dengan ID
     public Player(int id, int teamId, String name, int jerseyNumber, String position) {
         super(id);

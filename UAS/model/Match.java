@@ -21,9 +21,6 @@ public class Match extends BaseModel {
     private int remainingSeconds = 600;
     private boolean isTimerRunning = false;
 
-    // Constructor default untuk membuat Match baru
-    public Match() { super(0); }
-
     // Constructor lengkap untuk membuat Match dari data database
     public Match(int id, int tournamentId, String tournamentName, int homeTeamId, String homeTeamName, 
             int awayTeamId, String awayTeamName, int roundNumber, int bracketIndex, 
