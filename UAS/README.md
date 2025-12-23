@@ -2,9 +2,13 @@
 
 Package ini berisi kelas-kelas representasi data (POJO - Plain Old Java Object) yang bertugas memetakan struktur tabel database menjadi objek Java.
 
+<<<<<<< HEAD
 Desain model ini menerapkan prinsip-prinsip **Object-Oriented Programming (OOP)** secara ketat untuk memastikan kode yang bersih, modular, dan mudah dikembangkan.
 
 ### 🛠 Konsep OOP yang Diterapkan
+=======
+## 🚀 Fitur Utama
+>>>>>>> abadc5446d3933a6ecc60532ea2711327fba7e60
 
 1.  **Inheritance (Pewarisan)**
     * Semua kelas model (`Team`, `Player`, `Match`, `Tournament`) mewarisi kelas induk `BaseModel`. Hal ini mencegah duplikasi kode untuk atribut umum seperti `id`.
@@ -31,6 +35,7 @@ Merepresentasikan data Tim.
 * **Atribut:** `name`, `logoPath`.
 * **Fitur:** Digunakan untuk menyimpan informasi identitas tim yang berkompetisi.
 
+<<<<<<< HEAD
 #### 3. `Player.java`
 Merepresentasikan data Pemain.
 * **Atribut:** `teamId`, `name`, `jerseyNumber`, `position`.
@@ -240,3 +245,18 @@ Penyederhanaan tampilan dialog pesan.
 Helper untuk transformasi data.
 * **Fungsi:** Mengubah data mentah `Map<Integer, Integer>` (skor per quarter) menjadi String yang mudah dibaca user, misal: `(18, 20, 15, 22)`.
 * **Teknologi:** Memanfaatkan **Java Stream API** (`sorted`, `map`, `Collectors.joining`) untuk pemrosesan data yang ringkas dan ekspresif.
+=======
+```text
+SportaApp/
+├── src/main/java/
+│   ├── application/    # Entry point (Main.java, Launcher.java)
+│   ├── controller/     # Logika UI (Dashboard, MatchOperator, dll)
+│   ├── dao/            # Akses Database (TeamDao, MatchDao, dll)
+│   ├── helper/         # Utilitas (DatabaseHelper, SoundHelper, AlertHelper)
+│   ├── model/          # Representasi Data & Aturan Game (Strategy Pattern)
+│   └── module-info.java
+└── src/main/resources/
+    ├── sounds/         # Aset audio (score.wav, buzzer.wav)
+    ├── view/           # File FXML dan CSS
+    └── images/         # Logo tim/aplikasi
+>>>>>>> abadc5446d3933a6ecc60532ea2711327fba7e60
